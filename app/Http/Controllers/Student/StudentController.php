@@ -85,17 +85,32 @@ class StudentController extends Controller
     {
         $this->authorizeEnrollment($course);
 
+        // Eager-load lesson's unit + module for breadcrumb
         $lesson->load('unit.module');
+
+        // Eager-load full course structure for the sidebar navigation
+        $course->load(['modules.units.lessons' => function ($q) {
+            $q->where('is_active', true)->orderBy('order');
+        }, 'modules.units' => function ($q) {
+            $q->where('is_active', true)->orderBy('order');
+        }, 'modules' => function ($q) {
+            $q->where('is_active', true)->orderBy('order');
+        }]);
 
         $user = Auth::user();
         $isCompleted = $lesson->isCompletedByUser($user->id);
 
-        // Load all lessons in the same unit for navigation
-        $siblingLessons = $lesson->unit->lessons()->where('is_active', true)->orderBy('order')->get();
+        // Get all active lessons in the same unit for prev/next navigation
+        $siblingLessons = $lesson->unit->lessons()
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
         $currentIndex = $siblingLessons->search(fn($l) => $l->id === $lesson->id);
 
         $prevLesson = $currentIndex > 0 ? $siblingLessons[$currentIndex - 1] : null;
-        $nextLesson = ($currentIndex < $siblingLessons->count() - 1) ? $siblingLessons[$currentIndex + 1] : null;
+        $nextLesson = ($currentIndex < $siblingLessons->count() - 1)
+            ? $siblingLessons[$currentIndex + 1]
+            : null;
 
         $progress = $course->progressForStudent($user->id);
 
