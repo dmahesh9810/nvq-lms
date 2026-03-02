@@ -29,8 +29,11 @@
         <a href="{{ route('instructor.courses.index') }}" class="nav-link {{ request()->routeIs('instructor.courses.*') ? 'active' : '' }}">
             <i class="bi bi-book-half"></i> All Courses
         </a>
-        <a href="{{ route('instructor.dashboard') }}" class="nav-link">
-            <i class="bi bi-people-fill"></i> Users
+        <a href="{{ route('instructor.assignments.index') }}" class="nav-link {{ request()->routeIs('instructor.assignments.*') ? 'active' : '' }}">
+            <i class="bi bi-journal-text"></i> Assignments
+        </a>
+        <a href="{{ route('instructor.quizzes.index') }}" class="nav-link {{ request()->routeIs('instructor.quizzes.*') ? 'active' : '' }}">
+            <i class="bi bi-patch-question"></i> Quizzes
         </a>
     @endif
 
@@ -43,13 +46,21 @@
         <a href="{{ route('instructor.courses.create') }}" class="nav-link {{ request()->routeIs('instructor.courses.create') ? 'active' : '' }}">
             <i class="bi bi-plus-circle"></i> New Course
         </a>
+        @if($role === 'instructor')
+        <a href="{{ route('instructor.assignments.index') }}" class="nav-link {{ request()->routeIs('instructor.assignments.*') ? 'active' : '' }}">
+            <i class="bi bi-journal-text"></i> Assignments
+        </a>
+        <a href="{{ route('instructor.quizzes.index') }}" class="nav-link {{ request()->routeIs('instructor.quizzes.*') ? 'active' : '' }}">
+            <i class="bi bi-patch-question"></i> Quizzes
+        </a>
+        @endif
     @endif
 
     {{-- ── Assessor Links ── --}}
-    @if ($role === 'assessor')
+    @if (in_array($role, ['admin', 'assessor']))
         <div class="nav-section-label">Assessment</div>
-        <a href="{{ route('assessor.dashboard') }}" class="nav-link">
-            <i class="bi bi-clipboard-check"></i> Assessments
+        <a href="{{ route('assessor.grading.index') }}" class="nav-link {{ request()->routeIs('assessor.grading.*') ? 'active' : '' }}">
+            <i class="bi bi-clipboard-check"></i> Grading Queue
         </a>
     @endif
 
@@ -61,6 +72,13 @@
         </a>
         <a href="{{ route('student.dashboard') }}" class="nav-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
             <i class="bi bi-collection-play"></i> My Learning
+        </a>
+        <div class="nav-section-label">Assessments</div>
+        <a href="{{ route('student.assignments.index') }}" class="nav-link {{ request()->routeIs('student.assignments.*') ? 'active' : '' }}">
+            <i class="bi bi-journal-text"></i> Assignments
+        </a>
+        <a href="{{ route('student.quizzes.index') }}" class="nav-link {{ request()->routeIs('student.quizzes.*') ? 'active' : '' }}">
+            <i class="bi bi-patch-question"></i> Quizzes
         </a>
     @endif
 

@@ -58,6 +58,7 @@ class DashboardController extends Controller
         $stats = [
             'total_courses' => Course::where('status', 'published')->count(),
             'total_students' => User::where('role', 'student')->count(),
+            'pending_grading' => \App\Models\AssignmentSubmission::where('status', '!=', 'graded')->count(),
         ];
 
         return view('dashboard.assessor', compact('stats'));
