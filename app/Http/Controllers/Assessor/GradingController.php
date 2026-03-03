@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Assessor;
 use App\Http\Controllers\Controller;
 use App\Models\AssignmentSubmission;
 use App\Models\AssignmentResult;
+use App\Services\CourseCompletionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -48,6 +49,7 @@ class GradingController extends Controller
 
     /**
      * Save the competency grade (C / NYC) and any feedback.
+     * After saving, triggers the course completion check to auto-award certificates.
      */
     public function grade(Request $request, AssignmentSubmission $submission)
     {
@@ -72,7 +74,20 @@ class GradingController extends Controller
         // Mark the submission as graded
         $submission->update(['status' => 'graded']);
 
+        // ── Phase 4: Auto-award certificate if student is now fully competent ──
+        // Load the course and student from the submission's assignment chain.
+        // The completion service will handle all N+1-safe checks internally.
+        $course = $submission->assignment->unit->module->course;
+        $student = $submission->student;
+
+        app(CourseCompletionService::class)->awardCertificateIfEligible($student, $course);
+
+        $message = 'Submission graded successfully.';
+        if ($data['competency_status'] === 'competent') {
+            $message .= ' Competency check triggered.';
+        }
+
         return redirect()->route('assessor.grading.index')
-            ->with('success', 'Submission graded successfully.');
+            ->with('success', $message);
     }
 }

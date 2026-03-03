@@ -36,4 +36,10 @@ class Unit extends Model
     {
         return $this->hasMany(Lesson::class)->orderBy('order');
     }
+
+    /** Assignments within this unit */
+    public function assignments()
+    {
+        return $this->hasMany(Assignment::class);
+    }
 }
