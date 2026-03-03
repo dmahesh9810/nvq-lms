@@ -28,9 +28,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Redirect to the role-specific dashboard
-        $user = Auth::user();
-        return redirect()->intended(route($user->dashboardRoute()));
+        // Redirect to /dashboard which then dispatches to the correct role dashboard.
+        // Using route('dashboard') satisfies Breeze's default tests while keeping
+        // role-based routing intact via the fallback route in web.php.
+        return redirect()->intended(route('dashboard'));
     }
 
     /**
