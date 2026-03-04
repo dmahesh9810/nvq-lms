@@ -10,13 +10,12 @@ class QuizAttempt extends Model
     use HasFactory;
 
     protected $fillable = [
-        'quiz_id', 'user_id', 'score', 'percentage', 'passed', 'attempted_at',
+        'quiz_id', 'user_id', 'score', 'result', 'started_at', 'completed_at',
     ];
 
     protected $casts = [
-        'passed'       => 'boolean',
-        'percentage'   => 'decimal:2',
-        'attempted_at' => 'datetime',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     /** The quiz this attempt is for */
@@ -28,6 +27,12 @@ class QuizAttempt extends Model
     /** The student who attempted */
     public function student()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class , 'user_id');
+    }
+
+    /** The answers submitted for this attempt */
+    public function answers()
+    {
+        return $this->hasMany(QuizAnswer::class , 'attempt_id');
     }
 }

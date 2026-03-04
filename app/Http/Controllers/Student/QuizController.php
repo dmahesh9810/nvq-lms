@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
+use App\Models\QuizAnswer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,74 +37,127 @@ class QuizController extends Controller
         return view('student.quizzes.index', compact('quizzes', 'attempts'));
     }
 
-    /** Show the quiz taking page (all questions at once) */
-    public function take(Quiz $quiz)
+    /** Start a new quiz attempt */
+    public function startQuiz(Quiz $quiz)
     {
         $this->authorizeAccess($quiz);
 
-        // If already passed, redirect to previous result
-        $lastAttempt = $quiz->lastAttemptByUser(Auth::id());
-        if ($lastAttempt && $lastAttempt->passed) {
+        $activeAttempt = QuizAttempt::where('quiz_id', $quiz->id)
+            ->where('user_id', Auth::id())
+            ->whereNull('completed_at')
+            ->first();
+
+        if ($activeAttempt) {
+            return redirect()->route('student.quizzes.attempt', [$quiz, $activeAttempt]);
+        }
+
+        $lastAttempt = QuizAttempt::where('quiz_id', $quiz->id)
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->first();
+
+        if ($lastAttempt && $lastAttempt->result === 'PASS') {
             return redirect()->route('student.quizzes.result', [$quiz, $lastAttempt])
                 ->with('info', 'You have already passed this quiz.');
         }
 
-        $quiz->load('questions.options');
+        // Create new attempt
+        $attempt = QuizAttempt::create([
+            'quiz_id' => $quiz->id,
+            'user_id' => Auth::id(),
+            'score' => 0,
+            'result' => null,
+            'started_at' => now(),
+        ]);
 
-        return view('student.quizzes.take', compact('quiz', 'lastAttempt'));
+        return redirect()->route('student.quizzes.attempt', [$quiz, $attempt]);
     }
 
-    /** Auto-mark and record the quiz attempt */
-    public function submit(Request $request, Quiz $quiz)
+    /** Show the quiz questions to the student */
+    public function showQuiz(Quiz $quiz, QuizAttempt $attempt)
     {
         $this->authorizeAccess($quiz);
 
-        // Block direct POST if student already passed this quiz
-        $lastAttempt = $quiz->lastAttemptByUser(Auth::id());
-        if ($lastAttempt && $lastAttempt->passed) {
-            return redirect()->route('student.quizzes.result', [$quiz, $lastAttempt])
-                ->with('info', 'You have already passed this quiz.');
+        // Ensure attempt belongs to user
+        if ($attempt->user_id !== Auth::id() || $attempt->quiz_id !== $quiz->id) {
+            abort(403);
+        }
+
+        // If attempt already completed, redirect to result
+        if ($attempt->completed_at) {
+            return redirect()->route('student.quizzes.result', [$quiz, $attempt]);
+        }
+
+        $quiz->load('questions.options');
+
+        return view('student.quizzes.attempt', compact('quiz', 'attempt'));
+    }
+
+    /** Submit the quiz answers and calculate score */
+    public function submitQuiz(Request $request, Quiz $quiz, QuizAttempt $attempt)
+    {
+        $this->authorizeAccess($quiz);
+
+        // Ensure attempt belongs to user
+        if ($attempt->user_id !== Auth::id() || $attempt->quiz_id !== $quiz->id) {
+            abort(403);
+        }
+
+        // Prevent duplicate resubmission
+        if ($attempt->completed_at) {
+            return redirect()->route('student.quizzes.result', [$quiz, $attempt])
+                ->with('error', 'Quiz already submitted.');
         }
 
         $quiz->load('questions.options');
 
         $score = 0;
-        $totalMarks = 0;
 
         foreach ($quiz->questions as $question) {
-            $totalMarks += $question->marks;
-            $selectedOptionId = (int)$request->input("answers.{$question->id}");
+            $selectedOptionId = $request->input("answers.{$question->id}");
             $correctOption = $question->correctOption();
 
-            if ($correctOption && $selectedOptionId === (int)$correctOption->id) {
-                $score += $question->marks;
+            $isCorrect = false;
+
+            // Allow null/empty answers if student skips
+            if ($selectedOptionId) {
+                $isCorrect = $correctOption && ((int)$selectedOptionId === (int)$correctOption->id);
+                if ($isCorrect) {
+                    $score += $question->marks;
+                }
             }
+
+            // Save individual answer
+            QuizAnswer::create([
+                'attempt_id' => $attempt->id,
+                'question_id' => $question->id,
+                'selected_option_id' => $selectedOptionId ?: null,
+                'is_correct' => $isCorrect,
+            ]);
         }
 
-        $percentage = $totalMarks > 0 ? round(($score / $totalMarks) * 100, 2) : 0;
-        $passed = $percentage >= $quiz->pass_mark;
+        $result = $score >= $quiz->pass_mark ? 'PASS' : 'FAIL';
 
-        $attempt = QuizAttempt::create([
-            'quiz_id' => $quiz->id,
-            'user_id' => Auth::id(),
+        $attempt->update([
             'score' => $score,
-            'percentage' => $percentage,
-            'passed' => $passed,
-            'attempted_at' => now(),
+            'result' => $result,
+            'completed_at' => now(),
         ]);
 
-        return redirect()->route('student.quizzes.result', [$quiz, $attempt]);
+        return redirect()->route('student.quizzes.result', [$quiz, $attempt])
+            ->with('success', 'Quiz submitted successfully.');
     }
 
     /** Show the quiz result screen */
-    public function result(Quiz $quiz, QuizAttempt $attempt)
+    public function showResult(Quiz $quiz, QuizAttempt $attempt)
     {
         // Ensure the attempt belongs to the logged-in user
-        if ($attempt->user_id !== Auth::id()) {
+        if ($attempt->user_id !== Auth::id() || $attempt->quiz_id !== $quiz->id) {
             abort(403);
         }
 
         $quiz->load('questions.options');
+        $attempt->load('answers.selectedOption'); // load answers to show what they selected
 
         return view('student.quizzes.result', compact('quiz', 'attempt'));
     }

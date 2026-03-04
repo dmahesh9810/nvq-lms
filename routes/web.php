@@ -177,14 +177,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 // Phase 3: Quizzes
                 Route::prefix('quizzes')->name('quizzes.')->group(function () {
                     Route::get('/', [StudentQuizController::class , 'index'])->name('index');
-                    Route::get('/{quiz}/take', [StudentQuizController::class , 'take'])->name('take');
-                    Route::post('/{quiz}/submit', [StudentQuizController::class , 'submit'])->name('submit');
-                    Route::get('/{quiz}/result/{attempt}', [StudentQuizController::class , 'result'])->name('result');
-                }
-                );
+                    Route::get('/{quiz}/start', function ($quiz) {
+                            return view('student.quizzes.start', ['quiz' => \App\Models\Quiz::findOrFail($quiz)]);
+                        }
+                        )->name('start.view');
+                        Route::post('/{quiz}/start', [StudentQuizController::class , 'startQuiz'])->name('start');
+                        Route::get('/{quiz}/attempt/{attempt}', [StudentQuizController::class , 'showQuiz'])->name('attempt');
+                        Route::post('/{quiz}/attempt/{attempt}/submit', [StudentQuizController::class , 'submitQuiz'])->name('submit');
+                        Route::get('/{quiz}/result/{attempt}', [StudentQuizController::class , 'showResult'])->name('result');
+                    }
+                    );
 
-                // Phase 4: Certificates
-                Route::prefix('certificates')->name('certificates.')->group(function () {
+                    // Phase 4: Certificates
+                    Route::prefix('certificates')->name('certificates.')->group(function () {
                     Route::get('/', [StudentCertificateController::class , 'index'])->name('index');
                     Route::get('/{certificate}/download', [StudentCertificateController::class , 'download'])->name('download');
                 }
