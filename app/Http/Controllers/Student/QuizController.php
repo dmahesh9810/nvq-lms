@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\QuizAnswer;
+use App\Services\CertificateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,6 +36,13 @@ class QuizController extends Controller
             ->keyBy('quiz_id');
 
         return view('student.quizzes.index', compact('quizzes', 'attempts'));
+    }
+
+    /** Show the quiz start screen */
+    public function showStart(Quiz $quiz)
+    {
+        $this->authorizeAccess($quiz);
+        return view('student.quizzes.start', compact('quiz'));
     }
 
     /** Start a new quiz attempt */
@@ -109,13 +117,17 @@ class QuizController extends Controller
                 ->with('error', 'Quiz already submitted.');
         }
 
-        $quiz->load('questions.options');
+        // Eager load everything needed for grading and certification check
+        $quiz->loadMissing(['questions.options', 'unit.module.course']);
 
         $score = 0;
+        $totalMarks = $quiz->questions->sum('marks');
 
         foreach ($quiz->questions as $question) {
             $selectedOptionId = $request->input("answers.{$question->id}");
-            $correctOption = $question->correctOption();
+
+            // Fix N+1: Query the collection instead of database relation
+            $correctOption = $question->options->firstWhere('is_correct', true);
 
             $isCorrect = false;
 
@@ -136,7 +148,9 @@ class QuizController extends Controller
             ]);
         }
 
-        $result = $score >= $quiz->pass_mark ? 'PASS' : 'FAIL';
+        // Fix Grading Math: Pass Mark is percentage-based
+        $percentage = $totalMarks > 0 ? round(($score / $totalMarks) * 100, 2) : 0;
+        $result = $percentage >= $quiz->pass_mark ? 'PASS' : 'FAIL';
 
         $attempt->update([
             'score' => $score,
@@ -144,8 +158,21 @@ class QuizController extends Controller
             'completed_at' => now(),
         ]);
 
+        $msg = 'Quiz submitted successfully.';
+
+        // If they passed, check if they are now eligible for the course certificate
+        if ($result === 'PASS') {
+            $course = $quiz->unit->module->course;
+            $certService = app(CertificateService::class);
+            $certificate = $certService->checkAndIssueCertificate(Auth::user(), $course);
+
+            if ($certificate) {
+                $msg .= ' Congratulations! You have completed all course requirements and earned a certificate!';
+            }
+        }
+
         return redirect()->route('student.quizzes.result', [$quiz, $attempt])
-            ->with('success', 'Quiz submitted successfully.');
+            ->with('success', $msg);
     }
 
     /** Show the quiz result screen */
