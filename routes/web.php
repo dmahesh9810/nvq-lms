@@ -10,7 +10,9 @@ use App\Http\Controllers\Instructor\QuizController as InstructorQuizController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\AssignmentController as StudentAssignmentController;
 use App\Http\Controllers\Student\QuizController as StudentQuizController;
+use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
 use App\Http\Controllers\Assessor\GradingController;
+use App\Http\Controllers\Admin\CertificateController as AdminCertificateController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,14 +56,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::get('/dashboard', [DashboardController::class , 'admin'])->name('dashboard');
-        }
-        );
 
-        // ── Instructor Routes ─────────────────────────────────────────────────
-        Route::middleware('role:admin,instructor')
-            ->prefix('instructor')
-            ->name('instructor.')
-            ->group(function () {
+            // Phase 4: Certificates Management
+            Route::prefix('certificates')->name('certificates.')->group(function () {
+                    Route::get('/', [AdminCertificateController::class , 'index'])->name('index');
+                    Route::patch('/{certificate}/revoke', [AdminCertificateController::class , 'revoke'])->name('revoke');
+                    Route::patch('/{certificate}/reinstate', [AdminCertificateController::class , 'reinstate'])->name('reinstate');
+                }
+                );
+            }
+            );
+
+            // ── Instructor Routes ─────────────────────────────────────────────────
+            Route::middleware('role:admin,instructor')
+                ->prefix('instructor')
+                ->name('instructor.')
+                ->group(function () {
             Route::get('/dashboard', [DashboardController::class , 'instructor'])->name('dashboard');
 
             // Course CRUD
@@ -167,9 +177,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 // Phase 3: Quizzes
                 Route::prefix('quizzes')->name('quizzes.')->group(function () {
                     Route::get('/', [StudentQuizController::class , 'index'])->name('index');
-                    Route::get('/{quiz}/take', [StudentQuizController::class , 'take'])->name('take');
-                    Route::post('/{quiz}/submit', [StudentQuizController::class , 'submit'])->name('submit');
-                    Route::get('/{quiz}/result/{attempt}', [StudentQuizController::class , 'result'])->name('result');
+                    Route::get('/{quiz}/start', function ($quiz) {
+                            return view('student.quizzes.start', ['quiz' => \App\Models\Quiz::findOrFail($quiz)]);
+                        }
+                        )->name('start.view');
+                        Route::post('/{quiz}/start', [StudentQuizController::class , 'startQuiz'])->name('start');
+                        Route::get('/{quiz}/attempt/{attempt}', [StudentQuizController::class , 'showQuiz'])->name('attempt');
+                        Route::post('/{quiz}/attempt/{attempt}/submit', [StudentQuizController::class , 'submitQuiz'])->name('submit');
+                        Route::get('/{quiz}/result/{attempt}', [StudentQuizController::class , 'showResult'])->name('result');
+                    }
+                    );
+
+                    // Phase 4: Certificates
+                    Route::prefix('certificates')->name('certificates.')->group(function () {
+                    Route::get('/', [StudentCertificateController::class , 'index'])->name('index');
+                    Route::get('/{certificate}/download', [StudentCertificateController::class , 'download'])->name('download');
                 }
                 );
             }

@@ -35,6 +35,9 @@
         <a href="{{ route('instructor.quizzes.index') }}" class="nav-link {{ request()->routeIs('instructor.quizzes.*') ? 'active' : '' }}">
             <i class="bi bi-patch-question"></i> Quizzes
         </a>
+        <a href="{{ route('admin.certificates.index') }}" class="nav-link {{ request()->routeIs('admin.certificates.*') ? 'active' : '' }}">
+            <i class="bi bi-award-fill"></i> Certificates
+        </a>
     @endif
 
     {{-- ── Instructor Links ── --}}
@@ -79,6 +82,10 @@
         </a>
         <a href="{{ route('student.quizzes.index') }}" class="nav-link {{ request()->routeIs('student.quizzes.*') ? 'active' : '' }}">
             <i class="bi bi-patch-question"></i> Quizzes
+        </a>
+        <div class="nav-section-label">Achievements</div>
+        <a href="{{ route('student.certificates.index') }}" class="nav-link {{ request()->routeIs('student.certificates.*') ? 'active' : '' }}">
+            <i class="bi bi-award"></i> My Certificates
         </a>
     @endif
 
