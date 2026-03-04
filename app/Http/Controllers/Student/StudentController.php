@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\StudentEnrollment;
+use App\Services\CertificateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -139,9 +140,18 @@ class StudentController extends Controller
         ]
         );
 
+        // Check if this final lesson completion triggers a certificate
+        $certService = app(CertificateService::class);
+        $certificate = $certService->checkAndIssueCertificate($user, $course);
+
+        $msg = 'Lesson marked as completed!';
+        if ($certificate) {
+            $msg .= ' Congratulations! You have completed all course requirements and earned a certificate!';
+        }
+
         return redirect()
             ->route('student.lessons.show', [$course, $lesson])
-            ->with('success', 'Lesson marked as completed!');
+            ->with('success', $msg);
     }
 
     /**

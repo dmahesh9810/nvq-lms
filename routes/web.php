@@ -5,14 +5,17 @@ use App\Http\Controllers\Instructor\CourseController;
 use App\Http\Controllers\Instructor\ModuleController;
 use App\Http\Controllers\Instructor\UnitController;
 use App\Http\Controllers\Instructor\LessonController;
+use App\Http\Controllers\Instructor\InstructorAnalyticsController;
 use App\Http\Controllers\Instructor\AssignmentController as InstructorAssignmentController;
 use App\Http\Controllers\Instructor\QuizController as InstructorQuizController;
 use App\Http\Controllers\Student\StudentController;
+use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\AssignmentController as StudentAssignmentController;
 use App\Http\Controllers\Student\QuizController as StudentQuizController;
 use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
 use App\Http\Controllers\Assessor\GradingController;
 use App\Http\Controllers\Admin\CertificateController as AdminCertificateController;
+use App\Http\Controllers\VerifyCertificateController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +25,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/verify-certificate', [VerifyCertificateController::class , 'showForm'])->name('verify.form');
+Route::post('/verify-certificate', [VerifyCertificateController::class , 'verify'])->name('verify.submit');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fallback /dashboard route — required by Breeze's default tests.
@@ -72,7 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->prefix('instructor')
                 ->name('instructor.')
                 ->group(function () {
-            Route::get('/dashboard', [DashboardController::class , 'instructor'])->name('dashboard');
+            Route::get('/dashboard', [InstructorAnalyticsController::class , 'dashboard'])->name('dashboard');
 
             // Course CRUD
             Route::resource('courses', CourseController::class);
@@ -157,7 +163,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->prefix('student')
                 ->name('student.')
                 ->group(function () {
-            Route::get('/dashboard', [DashboardController::class , 'student'])->name('dashboard');
+            Route::get('/dashboard', [StudentDashboardController::class , 'index'])->name('dashboard');
 
             // Phase 2: Courses & lessons
             Route::get('/courses', [StudentController::class , 'browseCourses'])->name('courses.browse');
@@ -177,19 +183,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 // Phase 3: Quizzes
                 Route::prefix('quizzes')->name('quizzes.')->group(function () {
                     Route::get('/', [StudentQuizController::class , 'index'])->name('index');
-                    Route::get('/{quiz}/start', function ($quiz) {
-                            return view('student.quizzes.start', ['quiz' => \App\Models\Quiz::findOrFail($quiz)]);
-                        }
-                        )->name('start.view');
-                        Route::post('/{quiz}/start', [StudentQuizController::class , 'startQuiz'])->name('start');
-                        Route::get('/{quiz}/attempt/{attempt}', [StudentQuizController::class , 'showQuiz'])->name('attempt');
-                        Route::post('/{quiz}/attempt/{attempt}/submit', [StudentQuizController::class , 'submitQuiz'])->name('submit');
-                        Route::get('/{quiz}/result/{attempt}', [StudentQuizController::class , 'showResult'])->name('result');
-                    }
-                    );
+                    Route::get('/{quiz}/start', [StudentQuizController::class , 'showStart'])->name('start.view');
+                    Route::post('/{quiz}/start', [StudentQuizController::class , 'startQuiz'])->name('start');
+                    Route::get('/{quiz}/attempt/{attempt}', [StudentQuizController::class , 'showQuiz'])->name('attempt');
+                    Route::post('/{quiz}/attempt/{attempt}/submit', [StudentQuizController::class , 'submitQuiz'])->name('submit');
+                    Route::get('/{quiz}/result/{attempt}', [StudentQuizController::class , 'showResult'])->name('result');
+                }
+                );
 
-                    // Phase 4: Certificates
-                    Route::prefix('certificates')->name('certificates.')->group(function () {
+                // Phase 4: Certificates
+                Route::prefix('certificates')->name('certificates.')->group(function () {
                     Route::get('/', [StudentCertificateController::class , 'index'])->name('index');
                     Route::get('/{certificate}/download', [StudentCertificateController::class , 'download'])->name('download');
                 }
