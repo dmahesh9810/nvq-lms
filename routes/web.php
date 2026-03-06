@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Instructor\CourseController;
 use App\Http\Controllers\Instructor\ModuleController;
@@ -22,9 +22,9 @@ use Illuminate\Support\Facades\Route;
 // ─────────────────────────────────────────────────────────────────────────────
 // Public routes
 // ─────────────────────────────────────────────────────────────────────────────
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomeController::class , 'index'])->name('home');
+Route::get('/courses', [HomeController::class , 'courses'])->name('courses.index');
+Route::get('/courses/{id}', [HomeController::class , 'showCourse'])->name('courses.show');
 
 Route::get('/verify-certificate', [VerifyCertificateController::class , 'showForm'])->name('verify.form');
 Route::post('/verify-certificate', [VerifyCertificateController::class , 'verify'])->name('verify.submit');

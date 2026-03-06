@@ -66,6 +66,12 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    /** Certificates issued for this course */
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
