@@ -16,10 +16,8 @@ class QuizController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $enrolledCourseIds = $user->enrolledCourses()->pluck('courses.id');
-
-        $quizzes = Quiz::whereHas('unit.module', function ($q) use ($enrolledCourseIds) {
-            $q->whereIn('course_id', $enrolledCourseIds);
+        $quizzes = Quiz::whereHas('unit.module.course.enrollments', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
         })
             ->where('is_active', true)
             ->with('unit.module.course')
@@ -161,18 +159,31 @@ class QuizController extends Controller
         $msg = 'Quiz submitted successfully.';
 
         // If they passed, check if they are now eligible for the course certificate
+        $warning = null;
         if ($result === 'PASS') {
             $course = $quiz->unit->module->course;
             $certService = app(CertificateService::class);
-            $certificate = $certService->checkAndIssueCertificate(Auth::user(), $course);
+            $status = $certService->getEligibilityStatus(Auth::user(), $course);
 
-            if ($certificate) {
-                $msg .= ' Congratulations! You have completed all course requirements and earned a certificate!';
+            if ($status['is_eligible']) {
+                $certificate = $certService->checkAndIssueCertificate(Auth::user(), $course);
+                if ($certificate) {
+                    $msg .= ' Congratulations! You have completed all course requirements and earned a certificate!';
+                }
+            }
+            else {
+                $warning = $status['reasons'][0] ?? null;
             }
         }
 
-        return redirect()->route('student.quizzes.result', [$quiz, $attempt])
+        $redirect = redirect()->route('student.quizzes.result', [$quiz, $attempt])
             ->with('success', $msg);
+
+        if ($warning) {
+            $redirect->with('info', $warning);
+        }
+
+        return $redirect;
     }
 
     /** Show the quiz result screen */
@@ -192,11 +203,11 @@ class QuizController extends Controller
     /** Ensure the student is enrolled in the quiz's course */
     private function authorizeAccess(Quiz $quiz): void
     {
-        $courseId = $quiz->unit->module->course_id;
-        $enrolled = Auth::user()->enrolledCourses()
-            ->where('courses.id', $courseId)->exists();
-        if (!$enrolled) {
-            abort(403, 'You are not enrolled in this course.');
-        }
+        $course = $quiz->unit->module->course;
+        abort_unless(
+            $course->enrollments()->where('user_id', Auth::id())->exists(),
+            403,
+            'You are not enrolled in this course.'
+        );
     }
 }

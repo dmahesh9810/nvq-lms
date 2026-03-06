@@ -50,11 +50,11 @@ class Course extends Model
     }
 
     /** Students enrolled in this course */
-    public function enrolledStudents()
+    public function students()
     {
         return $this->belongsToMany(
             User::class ,
-            'student_enrollments',
+            'enrollments',
             'course_id',
             'user_id'
         )->withPivot('status', 'enrolled_at')->withTimestamps();
@@ -63,7 +63,7 @@ class Course extends Model
     /** All enrollment records */
     public function enrollments()
     {
-        return $this->hasMany(StudentEnrollment::class);
+        return $this->hasMany(Enrollment::class);
     }
 
     // -------------------------------------------------------------------------

@@ -28,13 +28,13 @@
 
                 @if($attempt)
                     <div class="mb-2">
-                        @if($attempt->passed)
-                            <span class="badge bg-success p-2"><i class="bi bi-check-circle me-1"></i>Passed · {{ $attempt->percentage }}%</span>
+                        @if($attempt->result === 'PASS')
+                            <span class="badge bg-success p-2"><i class="bi bi-check-circle me-1"></i>Passed · {{ rtrim(rtrim(number_format($attempt->score, 2), '0'), '.') }}%</span>
                         @else
-                            <span class="badge bg-danger p-2"><i class="bi bi-x-circle me-1"></i>Failed · {{ $attempt->percentage }}%</span>
+                            <span class="badge bg-danger p-2"><i class="bi bi-x-circle me-1"></i>Failed · {{ rtrim(rtrim(number_format($attempt->score, 2), '0'), '.') }}%</span>
                         @endif
                     </div>
-                    <small class="text-muted">{{ $attempt->attempted_at->format('d M Y') }}</small>
+                    <small class="text-muted">{{ $attempt->completed_at ? $attempt->completed_at->format('d M Y') : 'In Progress' }}</small>
                 @else
                     <span class="badge bg-light text-dark border">Not Attempted</span>
                 @endif
@@ -44,13 +44,13 @@
                     <a href="{{ route('student.quizzes.result', [$quiz, $attempt]) }}" class="btn btn-sm btn-outline-primary w-100 mb-1">
                         <i class="bi bi-eye me-1"></i>View Result
                     </a>
-                    @if(!$attempt->passed)
-                    <a href="{{ route('student.quizzes.take', $quiz) }}" class="btn btn-sm btn-warning w-100">
+                    @if($attempt->result !== 'PASS')
+                    <a href="{{ route('student.quizzes.start.view', $quiz) }}" class="btn btn-sm btn-warning w-100">
                         <i class="bi bi-arrow-repeat me-1"></i>Retry Quiz
                     </a>
                     @endif
                 @else
-                    <a href="{{ route('student.quizzes.take', $quiz) }}" class="btn btn-sm btn-primary w-100">
+                    <a href="{{ route('student.quizzes.start.view', $quiz) }}" class="btn btn-sm btn-primary w-100">
                         <i class="bi bi-play-circle me-1"></i>Start Quiz
                     </a>
                 @endif

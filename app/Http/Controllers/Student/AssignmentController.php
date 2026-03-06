@@ -15,10 +15,8 @@ class AssignmentController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $enrolledCourseIds = $user->enrolledCourses()->pluck('courses.id');
-
-        $assignments = Assignment::whereHas('unit.module', function ($q) use ($enrolledCourseIds) {
-            $q->whereIn('course_id', $enrolledCourseIds);
+        $assignments = Assignment::whereHas('unit.module.course.enrollments', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
         })
             ->where('is_active', true)
             ->with('unit.module.course')
@@ -95,11 +93,11 @@ class AssignmentController extends Controller
     /** Ensure the student is enrolled in the assignment's course */
     private function authorizeAccess(Assignment $assignment): void
     {
-        $courseId = $assignment->unit->module->course_id;
-        $enrolled = Auth::user()->enrolledCourses()
-            ->where('courses.id', $courseId)->exists();
-        if (!$enrolled) {
-            abort(403, 'You are not enrolled in this course.');
-        }
+        $course = $assignment->unit->module->course;
+        abort_unless(
+            $course->enrollments()->where('user_id', Auth::id())->exists(),
+            403,
+            'You are not enrolled in this course.'
+        );
     }
 }

@@ -12,6 +12,8 @@ class AssignmentFactory extends Factory
             'unit_id' => \App\Models\Unit::factory(),
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
+            'due_date' => now()->addDays(rand(14, 60)),
+            'is_active' => true,
         ];
     }
 }
