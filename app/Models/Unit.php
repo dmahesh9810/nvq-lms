@@ -42,4 +42,10 @@ class Unit extends Model
     {
         return $this->hasMany(Assignment::class);
     }
+
+    /** Quizzes within this unit */
+    public function quizzes()
+    {
+        return $this->hasMany(Quiz::class);
+    }
 }

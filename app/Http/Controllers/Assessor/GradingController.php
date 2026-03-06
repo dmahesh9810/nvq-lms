@@ -75,12 +75,11 @@ class GradingController extends Controller
         $submission->update(['status' => 'graded']);
 
         // ── Phase 4: Auto-award certificate if student is now fully competent ──
-        // Load the course and student from the submission's assignment chain.
-        // The completion service will handle all N+1-safe checks internally.
+        // Using centralized CertificateService for unified eligibility rules
         $course = $submission->assignment->unit->module->course;
         $student = $submission->student;
 
-        app(CourseCompletionService::class)->awardCertificateIfEligible($student, $course);
+        app(\App\Services\CertificateService::class)->checkAndIssueCertificate($student, $course);
 
         $message = 'Submission graded successfully.';
         if ($data['competency_status'] === 'competent') {

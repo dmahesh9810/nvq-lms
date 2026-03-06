@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\User;
-use App\Models\StudentEnrollment;
+use App\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,7 +22,7 @@ class DashboardController extends Controller
             'total_instructors' => User::where('role', 'instructor')->count(),
             'total_courses' => Course::count(),
             'published_courses' => Course::where('status', 'published')->count(),
-            'total_enrollments' => StudentEnrollment::count(),
+            'total_enrollments' => Enrollment::count(),
         ];
 
         return view('dashboard.admin', compact('stats'));
@@ -41,7 +41,7 @@ class DashboardController extends Controller
         $stats = [
             'my_courses' => $user->instructedCourses()->count(),
             'published_courses' => $user->instructedCourses()->where('status', 'published')->count(),
-            'total_students' => StudentEnrollment::whereIn(
+            'total_students' => Enrollment::whereIn(
             'course_id', $user->instructedCourses()->pluck('id')
         )->distinct('user_id')->count(),
         ];
@@ -71,7 +71,7 @@ class DashboardController extends Controller
     public function student()
     {
         $user = Auth::user();
-        $courses = $user->enrolledCourses()->with(['modules.units.lessons'])->get();
+        $courses = $user->courses()->with(['modules.units.lessons'])->get();
 
         // Calculate progress for each enrolled course
         $courseProgress = $courses->mapWithKeys(function ($course) use ($user) {

@@ -105,11 +105,11 @@ class User extends Authenticatable
     }
 
     /** Courses this student is enrolled in (via pivot table) */
-    public function enrolledCourses()
+    public function courses()
     {
         return $this->belongsToMany(
             Course::class ,
-            'student_enrollments',
+            'enrollments',
             'user_id',
             'course_id'
         )->withPivot('status', 'enrolled_at')->withTimestamps();
@@ -124,6 +124,6 @@ class User extends Authenticatable
     /** Enrollment records */
     public function enrollments()
     {
-        return $this->hasMany(StudentEnrollment::class);
+        return $this->hasMany(Enrollment::class);
     }
 }

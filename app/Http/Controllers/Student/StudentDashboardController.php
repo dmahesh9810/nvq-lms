@@ -18,7 +18,7 @@ class StudentDashboardController extends Controller
         $user = Auth::user();
 
         // 1. Enrolled Courses with Progress
-        $courses = $user->enrolledCourses()->with(['modules.units.lessons', 'modules.units.quizzes'])->get();
+        $courses = $user->courses()->with(['modules.units.lessons', 'modules.units.quizzes'])->get();
 
         $enrolledCourseIds = $courses->pluck('id');
 
@@ -64,7 +64,7 @@ class StudentDashboardController extends Controller
             ->orderByDesc('issued_at')
             ->get();
 
-        return view('student.dashboard', compact(
+        return view('dashboard.student', compact(
             'courses',
             'courseProgress',
             'totalLessons',

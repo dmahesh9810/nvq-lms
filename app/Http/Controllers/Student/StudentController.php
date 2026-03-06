@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
-use App\Models\StudentEnrollment;
+use App\Models\Enrollment;
 use App\Services\CertificateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,10 +18,10 @@ class StudentController extends Controller
      */
     public function browseCourses()
     {
-        $enrolledIds = Auth::user()->enrolledCourses()->pluck('courses.id');
-
         $courses = Course::where('status', 'published')
-            ->whereNotIn('id', $enrolledIds)
+            ->whereDoesntHave('enrollments', function ($q) {
+            $q->where('user_id', Auth::id());
+        })
             ->with('instructor')
             ->withCount('enrollments')
             ->paginate(12);
@@ -37,13 +37,13 @@ class StudentController extends Controller
         $user = Auth::user();
 
         // Prevent duplicate enrollment
-        if ($user->enrolledCourses()->where('courses.id', $course->id)->exists()) {
+        if ($user->courses()->where('courses.id', $course->id)->exists()) {
             return redirect()
                 ->route('student.courses.browse')
                 ->with('info', 'You are already enrolled in this course.');
         }
 
-        StudentEnrollment::create([
+        Enrollment::create([
             'user_id' => $user->id,
             'course_id' => $course->id,
             'enrolled_at' => now(),
@@ -140,18 +140,32 @@ class StudentController extends Controller
         ]
         );
 
-        // Check if this final lesson completion triggers a certificate
+        // Check eligibility for certificate
         $certService = app(CertificateService::class);
-        $certificate = $certService->checkAndIssueCertificate($user, $course);
+        $status = $certService->getEligibilityStatus($user, $course);
 
         $msg = 'Lesson marked as completed!';
-        if ($certificate) {
-            $msg .= ' Congratulations! You have completed all course requirements and earned a certificate!';
+        $warning = null;
+
+        if ($status['is_eligible']) {
+            $certificate = $certService->checkAndIssueCertificate($user, $course);
+            if ($certificate) {
+                $msg .= ' Congratulations! You have completed all course requirements and earned a certificate!';
+            }
+        }
+        else {
+            $warning = $status['reasons'][0] ?? null;
         }
 
-        return redirect()
+        $redirect = redirect()
             ->route('student.lessons.show', [$course, $lesson])
             ->with('success', $msg);
+
+        if ($warning) {
+            $redirect->with('info', $warning);
+        }
+
+        return $redirect;
     }
 
     /**
@@ -159,12 +173,10 @@ class StudentController extends Controller
      */
     private function authorizeEnrollment(Course $course): void
     {
-        $enrolled = Auth::user()->enrolledCourses()
-            ->where('courses.id', $course->id)
-            ->exists();
-
-        if (!$enrolled) {
-            abort(403, 'You are not enrolled in this course.');
-        }
+        abort_unless(
+            $course->enrollments()->where('user_id', Auth::id())->exists(),
+            403,
+            'You are not enrolled in this course.'
+        );
     }
 }
