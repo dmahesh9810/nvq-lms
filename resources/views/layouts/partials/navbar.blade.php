@@ -1,8 +1,8 @@
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url('/') }}">
-                <i class="bi bi-laptop-fill"></i>
-                {{ config('app.name') }}
+                <img src="{{ asset('logo.png') }}" alt="{{ config('app.name') }}" height="40" style="object-fit: contain;">
+                <span style="font-weight: 700; font-size: 1.2rem;">{{ config('app.name') }}</span>
             </a>
             
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name') }} — @yield('title', 'Dashboard')</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -125,9 +126,9 @@
 {{-- ── Sidebar ─────────────────────────────────────────────── --}}
 <nav class="sidebar">
     <div class="brand">
-        <a href="{{ url('/') }}">
-            <i class="bi bi-mortarboard-fill text-warning"></i>
-            {{ config('app.name') }}
+        <a href="{{ url('/') }}" class="d-flex align-items-center gap-2">
+            <img src="{{ asset('logo.png') }}" alt="{{ config('app.name') }}" height="34" style="object-fit:contain;">
+            <span>{{ config('app.name') }}</span>
         </a>
     </div>
 

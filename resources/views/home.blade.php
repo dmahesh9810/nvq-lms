@@ -50,7 +50,7 @@
 
             <div class="row g-4 justify-content-center">
                 <!-- For Students -->
-                <div class="col-md-6 col-lg-5">
+                <div class="col-12 col-md-4">
                     <div class="audience-card">
                         <div class="audience-icon icon-student">
                             <i class="bi bi-mortarboard"></i>
@@ -63,9 +63,25 @@
                         </ul>
                     </div>
                 </div>
-                
+
+                <!-- For Instructors (NEW) -->
+                <div class="col-12 col-md-4">
+                    <div class="audience-card">
+                        <div class="audience-icon icon-assessor" style="background: #f0fdf4;">
+                            <i class="bi bi-easel2" style="color: #16a34a;"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">For Instructors</h4>
+                        <ul class="list-unstyled text-muted mb-0">
+                            <li class="mb-3 d-flex"><i class="bi bi-check2-circle text-success me-2 fs-5"></i> Create and manage courses easily</li>
+                            <li class="mb-3 d-flex"><i class="bi bi-check2-circle text-success me-2 fs-5"></i> Upload lessons, videos, and learning materials</li>
+                            <li class="mb-3 d-flex"><i class="bi bi-check2-circle text-success me-2 fs-5"></i> Track student progress and performance</li>
+                            <li class="d-flex"><i class="bi bi-check2-circle text-success me-2 fs-5"></i> Manage quizzes and assignments</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- For Assessors -->
-                <div class="col-md-6 col-lg-5">
+                <div class="col-12 col-md-4">
                     <div class="audience-card">
                         <div class="audience-icon icon-assessor">
                             <i class="bi bi-person-badge"></i>
@@ -226,8 +242,9 @@
         <div class="container">
             <div class="row g-4">
                 <div class="col-lg-5 pe-lg-5">
-                    <a href="{{ url('/') }}" class="footer-logo mb-3">
-                        <i class="bi bi-laptop-fill text-primary"></i> {{ config('app.name') }}
+                    <a href="{{ url('/') }}" class="footer-logo mb-3 d-flex align-items-center gap-2">
+                        <img src="{{ asset('logo.png') }}" alt="{{ config('app.name') }}" height="36" style="object-fit:contain;">
+                        <span>{{ config('app.name') }}</span>
                     </a>
                     <p class="text-muted small mb-4">An online learning support platform dedicated to assisting NVQ ICT students track their progress, consume theoretical lessons, and interact with course assessors online.</p>
                 </div>
