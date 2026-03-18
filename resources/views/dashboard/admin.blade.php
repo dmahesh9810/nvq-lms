@@ -50,7 +50,57 @@
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-4 mt-1">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between py-3 px-4">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-hourglass-split text-warning me-2"></i>Pending Course Approvals</h6>
+            </div>
+            <div class="card-body p-0">
+                @if($pendingCourses->isEmpty())
+                    <div class="p-4 text-center text-muted">No pending courses to review.</div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Course</th>
+                                    <th>Instructor</th>
+                                    <th>Submitted</th>
+                                    <th class="pe-4 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($pendingCourses as $pendingCourse)
+                                <tr>
+                                    <td class="ps-4 fw-medium">
+                                        {{ $pendingCourse->title }}
+                                        <a href="{{ route('instructor.courses.show', $pendingCourse) }}" target="_blank" class="ms-1 small text-primary" title="Preview Course"><i class="bi bi-box-arrow-up-right"></i></a>
+                                    </td>
+                                    <td>{{ $pendingCourse->instructor->name }}</td>
+                                    <td class="text-muted small">{{ $pendingCourse->updated_at->diffForHumans() }}</td>
+                                    <td class="pe-4 text-end">
+                                        <form action="{{ route('admin.courses.approve', $pendingCourse) }}" method="POST" class="d-inline">
+                                            @csrf @method('PATCH')
+                                            <button class="btn btn-sm btn-success"><i class="bi bi-check-circle me-1"></i>Approve</button>
+                                        </form>
+                                        <form action="{{ route('admin.courses.reject', $pendingCourse) }}" method="POST" class="d-inline">
+                                            @csrf @method('PATCH')
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject this course?')"><i class="bi bi-x-circle me-1"></i>Reject</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
     <div class="col-md-12">
         <div class="card">
             <div class="card-header d-flex align-items-center justify-content-between py-3 px-4">

@@ -1,267 +1,14 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>IQBrave LMS - Learn NVQ ICT Skills Online</title>
+@extends('layouts.main')
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+@section('title', config('app.name') . ' - Learn NVQ ICT Skills Online')
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            color: #334155;
-            background-color: #f8fafc;
-        }
-        
-        /* Typography */
-        h1, h2, h3, h4, h5, h6 {
-            color: #0f172a;
-            font-weight: 700;
-        }
-
-        /* Navbar */
-        .navbar {
-            padding: 1rem 0;
-            background-color: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-        }
-        .navbar-brand {
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: #1e293b;
-        }
-        .navbar-brand i { color: #2563eb; }
-        .nav-link {
-            font-weight: 500;
-            color: #475569 !important;
-            margin: 0 12px;
-            transition: color 0.2s;
-        }
-        .nav-link:hover { color: #2563eb !important; }
-
-        /* Buttons */
-        .btn {
-            font-weight: 600;
-            padding: 0.6rem 1.5rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        .btn-primary {
-            background-color: #2563eb;
-            border-color: #2563eb;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
-        }
-        .btn-primary:hover {
-            background-color: #1d4ed8;
-            border-color: #1d4ed8;
-            transform: translateY(-2px);
-        }
-        .btn-outline-primary {
-            color: #2563eb;
-            border-color: #2563eb;
-        }
-        .btn-outline-primary:hover {
-            background-color: #eff6ff;
-            color: #1d4ed8;
-            border-color: #1d4ed8;
-            transform: translateY(-2px);
-        }
-
-        /* Hero Section */
-        .hero-section {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            padding: 100px 0;
-            border-bottom: 1px solid #bae6fd;
-            overflow: hidden;
-        }
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1.15;
-            margin-bottom: 1.5rem;
-            letter-spacing: -1px;
-        }
-        .hero-subtitle {
-            font-size: 1.2rem;
-            color: #475569;
-            margin-bottom: 2.5rem;
-            line-height: 1.7;
-        }
-        .hero-image {
-            border-radius: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-            border: 4px solid white;
-        }
-
-        /* Notice Section */
-        .notice-bar {
-            background-color: #fffbeb;
-            border-left: 4px solid #fbbf24;
-            padding: 1rem 1.5rem;
-            color: #92400e;
-            font-size: 0.95rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        /* Target Audience Section */
-        .audience-card {
-            background: white;
-            border-radius: 16px;
-            padding: 2.5rem;
-            height: 100%;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-        }
-        .audience-card:hover { transform: translateY(-5px); }
-        .audience-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-        }
-        .icon-student { background: #eff6ff; color: #2563eb; }
-        .icon-assessor { background: #fdf4ff; color: #c026d3; }
-
-        /* Section Headings */
-        .section-label {
-            color: #2563eb;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-size: 0.85rem;
-            display: inline-block;
-            background: #eff6ff;
-            padding: 6px 16px;
-            border-radius: 50px;
-            margin-bottom: 1rem;
-        }
-        .section-title { font-size: 2.5rem; margin-bottom: 1rem; }
-        
-        /* Course Cards */
-        .course-card {
-            background: white; border-radius: 16px; border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: all 0.3s;
-            height: 100%; overflow: hidden;
-        }
-        .course-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .course-card .card-img-top { height: 200px; object-fit: cover; }
-
-        /* Learning Process */
-        .process-step {
-            position: relative;
-            padding: 2rem;
-            background: white;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            text-align: center;
-            height: 100%;
-            z-index: 2;
-        }
-        .process-number {
-            width: 50px; height: 50px;
-            background: #2563eb; color: white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem; font-weight: 800;
-            margin: 0 auto 1.25rem;
-            box-shadow: 0 4px 6px -1px rgba(37,99,235,0.3);
-        }
-
-        /* Progress Features */
-        .progress-feature {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 1.5rem;
-        }
-        .feature-check {
-            color: #10b981;
-            font-size: 1.5rem;
-            margin-right: 1rem;
-            line-height: 1;
-        }
-
-        /* CTA */
-        .cta-section {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            padding: 80px 0;
-            color: white;
-            text-align: center;
-        }
-
-        /* Footer */
-        .footer {
-            background-color: #f8fafc;
-            padding: 60px 0 30px;
-            border-top: 1px solid #e2e8f0;
-        }
-        .footer-logo {
-            font-size: 1.5rem; font-weight: 800; color: #0f172a;
-            text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
-        }
-        .footer-link {
-            color: #64748b; text-decoration: none; display: block;
-            margin-bottom: 0.5rem; transition: color 0.2s;
-        }
-        .footer-link:hover { color: #2563eb; }
-    </style>
-</head>
-<body>
-
-    <!-- 1. NAVBAR -->
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url('/') }}">
-                <i class="bi bi-laptop-fill"></i>
-                IQBrave LMS
-            </a>
-            
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('courses.index') }}">Courses</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#learning-process">Learning Process</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                </ul>
-                <div class="d-flex gap-3 align-items-center mt-3 mt-lg-0">
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="btn btn-primary"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-                    @else
-                        <a href="{{ route('login') }}" class="btn btn-outline-primary">Login</a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="btn btn-primary">Register</a>
-                        @endif
-                    @endauth
-                </div>
-            </div>
-        </div>
-    </nav>
-
+@section('content')
     <!-- 7. NOTICE SECTION -->
     <div class="container mt-4 mb-2">
         <div class="notice-bar rounded-3">
             <i class="bi bi-info-circle-fill fs-4 flex-shrink-0"></i>
             <div>
-                <strong>Note:</strong> IQBrave LMS supports NVQ students in learning ICT subjects. <em>NVQ certificates are issued only by authorized vocational training institutes.</em> This platform is strictly for online learning and assessment support.
+                <strong>Note:</strong> {{ config('app.name') }} supports NVQ students in learning ICT subjects. <em>NVQ certificates are issued only by authorized vocational training institutes.</em> This platform is strictly for online learning and assessment support.
             </div>
         </div>
     </div>
@@ -275,7 +22,7 @@
                         <i class="bi bi-book me-1"></i> NVQ Learning Support Platform
                     </span>
                     <h1 class="hero-title">Learn NVQ ICT Skills <span class="text-primary">Online</span></h1>
-                    <p class="hero-subtitle">IQBrave LMS helps NVQ students learn ICT subjects online, complete lessons, attempt quizzes, and track their learning progress collaboratively with assessors.</p>
+                    <p class="hero-subtitle">{{ config('app.name') }} helps NVQ students learn ICT subjects online, complete lessons, attempt quizzes, and track their learning progress collaboratively with assessors.</p>
                     <div class="d-flex flex-column flex-sm-row gap-3">
                         <a href="{{ route('courses.index') }}" class="btn btn-primary btn-lg px-4 py-3 shadow">Browse Courses <i class="bi bi-arrow-right ms-2"></i></a>
                         @auth
@@ -480,7 +227,7 @@
             <div class="row g-4">
                 <div class="col-lg-5 pe-lg-5">
                     <a href="{{ url('/') }}" class="footer-logo mb-3">
-                        <i class="bi bi-laptop-fill text-primary"></i> IQBrave LMS
+                        <i class="bi bi-laptop-fill text-primary"></i> {{ config('app.name') }}
                     </a>
                     <p class="text-muted small mb-4">An online learning support platform dedicated to assisting NVQ ICT students track their progress, consume theoretical lessons, and interact with course assessors online.</p>
                 </div>
@@ -509,12 +256,159 @@
             </div>
             
             <div class="border-top pt-4 mt-5 text-center text-muted small">
-                &copy; {{ date('Y') }} IQBrave LMS. All rights reserved. <br>
+                &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved. <br>
                 <span class="fst-italic opacity-75">Not an official certification body. Final NVQ certificates are issued only by authorized institutes.</span>
             </div>
         </div>
     </footer>
+@endsection
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+@push('styles')
+    <style>
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 100px 0;
+            border-bottom: 1px solid #bae6fd;
+            overflow: hidden;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #475569;
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+        .hero-image {
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 4px solid white;
+        }
+
+        /* Notice Section */
+        .notice-bar {
+            background-color: #fffbeb;
+            border-left: 4px solid #fbbf24;
+            padding: 1rem 1.5rem;
+            color: #92400e;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Target Audience Section */
+        .audience-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            height: 100%;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        .audience-card:hover { transform: translateY(-5px); }
+        .audience-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .icon-student { background: #eff6ff; color: #2563eb; }
+        .icon-assessor { background: #fdf4ff; color: #c026d3; }
+
+        /* Section Headings */
+        .section-label {
+            color: #2563eb;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.85rem;
+            display: inline-block;
+            background: #eff6ff;
+            padding: 6px 16px;
+            border-radius: 50px;
+            margin-bottom: 1rem;
+        }
+        .section-title { font-size: 2.5rem; margin-bottom: 1rem; }
+        
+        /* Course Cards */
+        .course-card {
+            background: white; border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: all 0.3s;
+            height: 100%; overflow: hidden;
+        }
+        .course-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .course-card .card-img-top { height: 200px; object-fit: cover; }
+
+        /* Learning Process */
+        .process-step {
+            position: relative;
+            padding: 2rem;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            height: 100%;
+            z-index: 2;
+        }
+        .process-number {
+            width: 50px; height: 50px;
+            background: #2563eb; color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; font-weight: 800;
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(37,99,235,0.3);
+        }
+
+        /* Progress Features */
+        .progress-feature {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        .feature-check {
+            color: #10b981;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            line-height: 1;
+        }
+
+        /* CTA */
+        .cta-section {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 80px 0;
+            color: white;
+            text-align: center;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #f8fafc;
+            padding: 60px 0 30px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer-logo {
+            font-size: 1.5rem; font-weight: 800; color: #0f172a;
+            text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
+        }
+        .footer-link {
+            color: #64748b; text-decoration: none; display: block;
+            margin-bottom: 0.5rem; transition: color 0.2s;
+        }
+        .footer-link:hover { color: #2563eb; }
+    </style>
+@endpush
+

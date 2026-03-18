@@ -12,17 +12,12 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // Fetch 4 latest active courses
+        // Fetch 4 latest active published courses
         $courses = Course::with('instructor')
-            ->where('status', 'published') // assuming 'published' or active status, fallback to all if needed
+            ->where('status', 'published')
             ->latest()
             ->take(4)
             ->get();
-
-        // If the query returns 0 (maybe 'status' is not published but '1' or 'active'), fallback to latest 4
-        if ($courses->isEmpty()) {
-            $courses = Course::with('instructor')->latest()->take(4)->get();
-        }
 
         return view('home', compact('courses'));
     }
@@ -32,7 +27,10 @@ class HomeController extends Controller
      */
     public function courses()
     {
-        $courses = Course::with('instructor')->latest()->paginate(12);
+        $courses = Course::with('instructor')
+            ->where('status', 'published')
+            ->latest()
+            ->paginate(12);
         return view('courses.index', compact('courses'));
     }
 
@@ -41,7 +39,9 @@ class HomeController extends Controller
      */
     public function showCourse($id)
     {
-        $course = Course::with(['instructor', 'modules.units.lessons'])->findOrFail($id);
+        $course = Course::with(['instructor', 'modules.units.lessons'])
+            ->where('status', 'published')
+            ->findOrFail($id);
         return view('courses.show', compact('course'));
     }
 }

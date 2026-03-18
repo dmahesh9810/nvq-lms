@@ -49,7 +49,7 @@
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-green-800">Authentic Certificate</h3>
                                     <div class="mt-2 text-sm text-green-700">
-                                        <p>This is a valid, officially issued certificate registered in the IQBrave LMS.</p>
+                                        <p>This is a valid, officially issued certificate registered in the {{ config('app.name') }}.</p>
                                     </div>
                                 </div>
                             </div>
@@ -95,7 +95,7 @@
             </div>
             
             <div class="text-center text-sm text-gray-400">
-                <p>IQBrave LMS &copy; {{ date('Y') }}</p>
+                <p>{{ config('app.name') }} &copy; {{ date('Y') }}</p>
             </div>
         </div>
     </div>

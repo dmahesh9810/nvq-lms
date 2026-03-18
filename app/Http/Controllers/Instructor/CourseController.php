@@ -39,6 +39,7 @@ class CourseController extends Controller
     {
         $data = $request->validated();
         $data['instructor_id'] = Auth::id();
+        $data['status'] = 'draft'; // Enforce draft status on creation
 
         // Handle thumbnail upload
         if ($request->hasFile('thumbnail')) {
@@ -49,7 +50,7 @@ class CourseController extends Controller
 
         return redirect()
             ->route('instructor.courses.show', $course)
-            ->with('success', 'Course created successfully!');
+            ->with('success', 'Course created successfully as draft!');
     }
 
     /**
@@ -71,6 +72,11 @@ class CourseController extends Controller
     {
         $this->authorizeCourse($course);
 
+        if ($course->status === 'pending') {
+            return redirect()->route('instructor.courses.show', $course)
+                ->with('error', 'You cannot edit a course while it is pending approval.');
+        }
+
         return view('instructor.courses.edit', compact('course'));
     }
 
@@ -81,7 +87,13 @@ class CourseController extends Controller
     {
         $this->authorizeCourse($course);
 
+        if ($course->status === 'pending') {
+            return redirect()->route('instructor.courses.show', $course)
+                ->with('error', 'You cannot edit a course while it is pending approval.');
+        }
+
         $data = $request->validated();
+        unset($data['status']); // Security: Instructors cannot mass-assign status
 
         // Handle thumbnail upload
         if ($request->hasFile('thumbnail')) {
@@ -97,6 +109,22 @@ class CourseController extends Controller
         return redirect()
             ->route('instructor.courses.show', $course)
             ->with('success', 'Course updated successfully!');
+    }
+
+    /**
+     * Submit a course for admin review.
+     */
+    public function submitForReview(Course $course)
+    {
+        $this->authorizeCourse($course);
+
+        if ($course->status !== 'draft' && $course->status !== 'rejected') {
+            return back()->with('error', 'Only draft or rejected courses can be submitted for review.');
+        }
+
+        $course->update(['status' => 'pending']);
+
+        return back()->with('success', 'Course submitted for review successfully! Admin will verify it soon.');
     }
 
     /**

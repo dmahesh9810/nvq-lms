@@ -18,7 +18,6 @@ class CourseRequest extends FormRequest
             'title'       => 'required|string|max:255',
             'slug'        => 'nullable|string|max:255|unique:courses,slug,' . ($this->course?->id ?? 'NULL'),
             'description' => 'nullable|string',
-            'status'      => 'required|in:draft,published,archived',
             'thumbnail'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ];
     }

@@ -7,16 +7,28 @@
 <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
     <div>
         <h5 class="fw-bold mb-1">{{ $course->title }}</h5>
-        <span class="badge bg-{{ ['draft'=>'secondary','published'=>'success','archived'=>'dark'][$course->status] ?? 'secondary' }} me-2">{{ ucfirst($course->status) }}</span>
+        @php $sc = ['draft'=>'secondary','pending'=>'warning','published'=>'success','rejected'=>'danger','archived'=>'dark']; @endphp
+        <span class="badge bg-{{ $sc[$course->status] ?? 'secondary' }} me-2">{{ ucfirst($course->status) }}</span>
         <span class="text-muted small">{{ $course->enrollments()->count() }} students enrolled</span>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('instructor.courses.edit', $course) }}" class="btn btn-outline-warning btn-sm">
+        @if($course->status === 'draft' || $course->status === 'rejected')
+        <form action="{{ route('instructor.courses.submit', $course) }}" method="POST">
+            @csrf @method('PATCH')
+            <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Submit this course for Admin approval? You will not be able to edit it while pending.')">
+                <i class="bi bi-send me-1"></i>Submit for Review
+            </button>
+        </form>
+        @endif
+
+        @if($course->status !== 'pending')
+        <a href="{{ route('instructor.courses.edit', $course) }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-pencil me-1"></i>Edit Course
         </a>
         <a href="{{ route('instructor.courses.modules.create', $course) }}" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-circle me-1"></i>Add Module
         </a>
+        @endif
     </div>
 </div>
 

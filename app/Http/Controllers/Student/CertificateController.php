@@ -37,12 +37,16 @@ class CertificateController extends Controller
             return back()->with('error', 'This certificate has been revoked.');
         }
 
-        $certificate->load(['user', 'course']);
+        $qr = base64_encode(
+            \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(120)->generate(
+                route('certificate.verify', $certificate->certificate_number)
+            )
+        );
 
-        $pdf = Pdf::loadView('certificates.pdf', compact('certificate'))
+        $pdf = Pdf::loadView('certificates.pdf', compact('certificate', 'qr'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
-            'isRemoteEnabled' => false,
+            'isRemoteEnabled' => true,
             'isHtml5ParserEnabled' => true,
             'defaultFont' => 'DejaVu Sans',
         ]);

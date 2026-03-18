@@ -45,7 +45,7 @@
                                 <small class="text-muted">{{ Str::limit($course->description, 60) }}</small>
                             </td>
                             <td>
-                                @php $sc = ['draft'=>'secondary','published'=>'success','archived'=>'dark']; @endphp
+                                @php $sc = ['draft'=>'secondary','pending'=>'warning','published'=>'success','rejected'=>'danger','archived'=>'dark']; @endphp
                                 <span class="badge bg-{{ $sc[$course->status] ?? 'secondary' }}">{{ ucfirst($course->status) }}</span>
                             </td>
                             <td>{{ $course->enrollments_count }}</td>
@@ -54,13 +54,15 @@
                                 <a href="{{ route('instructor.courses.show', $course) }}" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-eye"></i> Manage
                                 </a>
+                                @if($course->status !== 'pending')
                                 <a href="{{ route('instructor.courses.edit', $course) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                @endif
                                 <form action="{{ route('instructor.courses.destroy', $course) }}" method="POST" class="d-inline"
                                       onsubmit="return confirm('Delete this course? This cannot be undone.')">
                                     @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                                 </form>
                             </td>
                         </tr>

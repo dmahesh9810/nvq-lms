@@ -25,7 +25,27 @@ class DashboardController extends Controller
             'total_enrollments' => Enrollment::count(),
         ];
 
-        return view('dashboard.admin', compact('stats'));
+        $pendingCourses = Course::with('instructor')->where('status', 'pending')->latest()->get();
+
+        return view('dashboard.admin', compact('stats', 'pendingCourses'));
+    }
+
+    /**
+     * Approve a pending course.
+     */
+    public function approveCourse(Course $course)
+    {
+        $course->update(['status' => 'published']);
+        return back()->with('success', 'Course approved and published successfully.');
+    }
+
+    /**
+     * Reject a pending course.
+     */
+    public function rejectCourse(Course $course)
+    {
+        $course->update(['status' => 'rejected']);
+        return back()->with('success', 'Course rejected.');
     }
 
     /**

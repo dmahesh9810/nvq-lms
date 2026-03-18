@@ -87,6 +87,7 @@
                               class="d-inline"
                               onsubmit="return confirm('Revoke certificate {{ $cert->certificate_number }}?')">
                             @csrf
+                            @method('PATCH')
                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                 <i class="bi bi-ban me-1"></i>Revoke
                             </button>
@@ -95,6 +96,7 @@
                         <form action="{{ route('admin.certificates.reinstate', $cert) }}" method="POST"
                               class="d-inline">
                             @csrf
+                            @method('PATCH')
                             <button type="submit" class="btn btn-sm btn-outline-success">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i>Reinstate
                             </button>

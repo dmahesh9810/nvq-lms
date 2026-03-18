@@ -10,9 +10,18 @@ class VerifyCertificateController extends Controller
     /**
      * Display the public certificate verification form.
      */
-    public function showForm()
+    public function showForm(Request $request)
     {
         return view('certificates.verify');
+    }
+
+    public function verifyByUrl($certificate_number)
+    {
+        $certificate = Certificate::with(['user', 'course'])
+            ->where('certificate_number', $certificate_number)
+            ->first();
+
+        return view('certificates.result', compact('certificate'));
     }
 
     /**

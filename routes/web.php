@@ -27,6 +27,7 @@ Route::get('/courses', [HomeController::class , 'courses'])->name('courses.index
 Route::get('/courses/{id}', [HomeController::class , 'showCourse'])->name('courses.show');
 
 Route::get('/verify-certificate', [VerifyCertificateController::class , 'showForm'])->name('verify.form');
+Route::get('/verify-certificate/{certificate_number}', [VerifyCertificateController::class , 'verifyByUrl'])->name('certificate.verify');
 Route::post('/verify-certificate', [VerifyCertificateController::class , 'verify'])->name('verify.submit');
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,6 +64,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->group(function () {
             Route::get('/dashboard', [DashboardController::class , 'admin'])->name('dashboard');
 
+            // Course Approval
+            Route::patch('/courses/{course}/approve', [DashboardController::class, 'approveCourse'])->name('courses.approve');
+            Route::patch('/courses/{course}/reject', [DashboardController::class, 'rejectCourse'])->name('courses.reject');
+
             // Phase 4: Certificates Management
             Route::prefix('certificates')->name('certificates.')->group(function () {
                     Route::get('/', [AdminCertificateController::class , 'index'])->name('index');
@@ -82,6 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             // Course CRUD
             Route::resource('courses', CourseController::class);
+            Route::patch('courses/{course}/submit-for-review', [CourseController::class, 'submitForReview'])->name('courses.submit');
 
             // Module CRUD — nested under course
             Route::prefix('courses/{course}/modules')->name('courses.modules.')->group(function () {
@@ -146,7 +152,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->prefix('assessor')
                 ->name('assessor.')
                 ->group(function () {
-            Route::get('/dashboard', [DashboardController::class , 'assessor'])->name('dashboard');
+            Route::get('/dashboard', [\App\Http\Controllers\Assessor\AssessorController::class , 'dashboard'])->name('dashboard');
+            Route::get('/students', [\App\Http\Controllers\Assessor\AssessorController::class , 'students'])->name('students.index');
+            Route::get('/courses', [\App\Http\Controllers\Assessor\AssessorController::class , 'courses'])->name('courses.index');
 
             // Phase 3: Grading
             Route::prefix('grading')->name('grading.')->group(function () {

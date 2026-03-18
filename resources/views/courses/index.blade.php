@@ -1,48 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>All Courses - IQBrave LMS</title>
+@extends('layouts.main')
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
-        .course-card {
-            background: white; border-radius: 16px; border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: all 0.3s;
-            height: 100%; display: flex; flex-direction: column; overflow: hidden;
-        }
-        .course-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .card-img-top { height: 200px; object-fit: cover; border-bottom: 1px solid #f1f5f9; }
-    </style>
-</head>
-<body>
+@section('title', 'All Courses - ' . config('app.name'))
 
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg bg-white sticky-top border-bottom py-3 shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-dark fs-4" href="{{ url('/') }}">
-                <i class="bi bi-award-fill text-primary"></i> IQBrave LMS
-            </a>
-            <div class="ms-auto d-flex gap-2">
-                @auth
-                    <a href="{{ route('dashboard') }}" class="btn btn-primary"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                @else
-                    <a href="{{ route('login') }}" class="btn btn-outline-primary">Login</a>
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn btn-primary d-none d-sm-inline-block">Register</a>
-                    @endif
-                @endauth
-            </div>
-        </div>
-    </nav>
-
+@section('content')
     <!-- COURSES SECTION -->
     <div class="container py-5">
         <h2 class="fw-bold mb-4">All Courses</h2>
@@ -73,6 +33,17 @@
             {{ $courses->links() }}
         </div>
     </div>
+@endsection
 
-</body>
-</html>
+@push('styles')
+    <style>
+        .course-card {
+            background: white; border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: all 0.3s;
+            height: 100%; display: flex; flex-direction: column; overflow: hidden;
+        }
+        .course-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .card-img-top { height: 200px; object-fit: cover; border-bottom: 1px solid #f1f5f9; }
+    </style>
+@endpush
+

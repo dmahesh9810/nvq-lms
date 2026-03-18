@@ -1,34 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $course->title }} - IQBrave LMS</title>
+@extends('layouts.main')
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
-        .hero { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 60px 0; }
-        .hero-img { border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-    </style>
-</head>
-<body>
+@section('title', $course->title . ' - ' . config('app.name'))
 
-    <nav class="navbar navbar-expand-lg bg-white sticky-top border-bottom py-3 shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-dark fs-4" href="{{ url('/') }}">
-                <i class="bi bi-award-fill text-primary"></i> IQBrave LMS
-            </a>
-            <div class="ms-auto d-flex gap-2">
-                <a href="{{ route('courses.index') }}" class="btn btn-outline-secondary">Back to Courses</a>
-            </div>
-        </div>
-    </nav>
-
+@section('content')
     <div class="hero mb-5">
         <div class="container">
             <div class="row align-items-center g-5">
@@ -131,7 +105,12 @@
             </div>
         </div>
     </div>
+@endsection
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+@push('styles')
+    <style>
+        .hero { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 60px 0; }
+        .hero-img { border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+    </style>
+@endpush
+

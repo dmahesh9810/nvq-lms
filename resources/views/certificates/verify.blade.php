@@ -43,7 +43,7 @@
             </div>
             
             <div class="text-center text-sm text-gray-400">
-                <p>IQBrave LMS &copy; {{ date('Y') }}</p>
+                <p>{{ config('app.name') }} &copy; {{ date('Y') }}</p>
             </div>
         </div>
     </div>

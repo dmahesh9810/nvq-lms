@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'IQBrave LMS') }}</title>
+    <title>{{ config('app.name') }}</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,7 +19,7 @@
     <div class="container d-flex flex-column justify-content-center align-items-center min-vh-100 py-5">
         <div class="mb-4 text-center">
             <a href="/" class="text-decoration-none d-flex align-items-center gap-2 text-dark fs-3 fw-bold">
-                <i class="bi bi-award-fill text-primary"></i> IQBrave LMS
+                <i class="bi bi-award-fill text-primary"></i> {{ config('app.name') }}
             </a>
         </div>
         <div class="row w-100 justify-content-center">

@@ -42,6 +42,18 @@
                     @enderror
                 </div>
 
+                <!-- Account Type (Role Selection) -->
+                <div class="mb-4">
+                    <label for="role" class="form-label fw-medium text-dark">Account Type</label>
+                    <select name="role" id="role" class="form-select form-select-lg bg-light border-0 py-3 @error('role') is-invalid @enderror" required>
+                        <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Student</option>
+                        <option value="instructor" {{ old('role') == 'instructor' ? 'selected' : '' }}>Instructor</option>
+                    </select>
+                    @error('role')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <button type="submit" class="btn btn-primary btn-lg w-100 mb-4 fw-bold rounded-pill shadow-sm">Register</button>
 
                 <p class="text-center text-muted small mb-0">Already registered? <a href="{{ route('login') }}" class="text-primary text-decoration-none fw-medium">Log in</a></p>

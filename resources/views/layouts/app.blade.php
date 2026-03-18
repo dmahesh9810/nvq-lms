@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'IQBrave LMS') }} — @yield('title', 'Dashboard')</title>
+    <title>{{ config('app.name') }} — @yield('title', 'Dashboard')</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -127,7 +127,7 @@
     <div class="brand">
         <a href="{{ url('/') }}">
             <i class="bi bi-mortarboard-fill text-warning"></i>
-            IQBrave LMS
+            {{ config('app.name') }}
         </a>
     </div>
 
