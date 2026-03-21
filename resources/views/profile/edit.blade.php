@@ -1,29 +1,49 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
+@section('title', 'My Profile')
+@section('page-title', 'My Profile')
+
+@section('content')
+<div class="row g-4">
+
+    {{-- ── Profile Information ──────────────────────────────────── --}}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header py-3 d-flex align-items-center gap-2">
+                <i class="bi bi-person-circle text-primary fs-5"></i>
+                <h5 class="mb-0 fw-semibold">Profile Information</h5>
             </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
+            <div class="card-body">
+                @include('profile.partials.update-profile-information-form')
             </div>
         </div>
     </div>
-</x-app-layout>
+
+    {{-- ── Update Password ──────────────────────────────────────── --}}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header py-3 d-flex align-items-center gap-2">
+                <i class="bi bi-shield-lock text-warning fs-5"></i>
+                <h5 class="mb-0 fw-semibold">Update Password</h5>
+            </div>
+            <div class="card-body">
+                @include('profile.partials.update-password-form')
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Delete Account ───────────────────────────────────────── --}}
+    <div class="col-12">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header py-3 d-flex align-items-center gap-2 border-danger">
+                <i class="bi bi-trash3 text-danger fs-5"></i>
+                <h5 class="mb-0 fw-semibold text-danger">Delete Account</h5>
+            </div>
+            <div class="card-body">
+                @include('profile.partials.delete-user-form')
+            </div>
+        </div>
+    </div>
+
+</div>
+@endsection
