@@ -8,6 +8,7 @@ use App\Http\Controllers\Instructor\LessonController;
 use App\Http\Controllers\Instructor\InstructorAnalyticsController;
 use App\Http\Controllers\Instructor\AssignmentController as InstructorAssignmentController;
 use App\Http\Controllers\Instructor\QuizController as InstructorQuizController;
+use App\Http\Controllers\Instructor\ChangeRequestController as InstructorChangeRequestController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\AssignmentController as StudentAssignmentController;
@@ -15,8 +16,10 @@ use App\Http\Controllers\Student\QuizController as StudentQuizController;
 use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
 use App\Http\Controllers\Assessor\GradingController;
 use App\Http\Controllers\Admin\CertificateController as AdminCertificateController;
+use App\Http\Controllers\Admin\ChangeRequestController as AdminChangeRequestController;
 use App\Http\Controllers\VerifyCertificateController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Assessor\ProgressController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,6 +71,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::patch('/courses/{course}/approve', [DashboardController::class, 'approveCourse'])->name('courses.approve');
             Route::patch('/courses/{course}/reject', [DashboardController::class, 'rejectCourse'])->name('courses.reject');
 
+            // Change Requests (Admin side)
+            Route::prefix('change-requests')->name('change-requests.')->group(function () {
+                Route::get('/', [AdminChangeRequestController::class, 'index'])->name('index');
+                Route::get('/{changeRequest}', [AdminChangeRequestController::class, 'show'])->name('show');
+                Route::patch('/{changeRequest}/approve', [AdminChangeRequestController::class, 'approve'])->name('approve');
+                Route::patch('/{changeRequest}/reject', [AdminChangeRequestController::class, 'reject'])->name('reject');
+            });
+
             // Phase 4: Certificates Management
             Route::prefix('certificates')->name('certificates.')->group(function () {
                     Route::get('/', [AdminCertificateController::class , 'index'])->name('index');
@@ -83,11 +94,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->prefix('instructor')
                 ->name('instructor.')
                 ->group(function () {
-            Route::get('/dashboard', [InstructorAnalyticsController::class , 'dashboard'])->name('dashboard');
+            Route::get('/dashboard', [DashboardController::class , 'instructor'])->name('dashboard');
+
 
             // Course CRUD
             Route::resource('courses', CourseController::class);
             Route::patch('courses/{course}/submit-for-review', [CourseController::class, 'submitForReview'])->name('courses.submit');
+
+            // Phase 4: Instructor Assignment routes (Admin only checks inside controller)
+            Route::post('courses/{course}/instructors/sync', [\App\Http\Controllers\Instructor\CourseInstructorController::class, 'syncCourseInstructors'])->name('courses.instructors.sync');
+            Route::post('courses/{course}/modules/{module}/instructors/sync', [\App\Http\Controllers\Instructor\CourseInstructorController::class, 'syncModuleInstructors'])->name('courses.modules.instructors.sync');
 
             // Module CRUD — nested under course
             Route::prefix('courses/{course}/modules')->name('courses.modules.')->group(function () {
@@ -128,6 +144,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::put('/{assignment}', [InstructorAssignmentController::class , 'update'])->name('update');
                     Route::delete('/{assignment}', [InstructorAssignmentController::class , 'destroy'])->name('destroy');
                     Route::get('/{assignment}/submissions', [InstructorAssignmentController::class , 'submissions'])->name('submissions');
+                    Route::post('/submissions/{submission}/review', [InstructorAssignmentController::class, 'reviewSubmission'])->name('submissions.review');
                 }
                 );
 
@@ -144,6 +161,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::delete('/{quiz}/questions/{question}', [InstructorQuizController::class , 'destroyQuestion'])->name('questions.destroy');
                 }
                 );
+
+                // ── Change Requests (Instructor submit / view own) ────────────
+                Route::prefix('change-requests')->name('change-requests.')->group(function () {
+                    Route::get('/', [InstructorChangeRequestController::class, 'index'])->name('index');
+                    Route::post('/', [InstructorChangeRequestController::class, 'store'])->name('store');
+                });
             }
             );
 
@@ -155,6 +178,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/dashboard', [\App\Http\Controllers\Assessor\AssessorController::class , 'dashboard'])->name('dashboard');
             Route::get('/students', [\App\Http\Controllers\Assessor\AssessorController::class , 'students'])->name('students.index');
             Route::get('/courses', [\App\Http\Controllers\Assessor\AssessorController::class , 'courses'])->name('courses.index');
+
+            // Phase 4: Assessor Progress Tracking
+            Route::prefix('progress')->name('progress.')->group(function () {
+                    Route::get('/', [ProgressController::class , 'index'])->name('index');
+                    Route::get('/student/{student}/course/{course}', [ProgressController::class , 'show'])->name('detail');
+                }
+            );
 
             // Phase 3: Grading
             Route::prefix('grading')->name('grading.')->group(function () {

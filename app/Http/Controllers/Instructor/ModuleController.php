@@ -15,7 +15,9 @@ class ModuleController extends Controller
      */
     public function create(Course $course)
     {
-        $this->authorizeCourse($course);
+        abort_unless(\Illuminate\Support\Facades\Auth::user()->isAdmin(), 403, 'Only administrators can add modules.');
+
+        $this->authorizeModule($course);
 
         return view('instructor.modules.create', compact('course'));
     }
@@ -25,7 +27,9 @@ class ModuleController extends Controller
      */
     public function store(ModuleRequest $request, Course $course)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403, 'Only administrators can add modules.');
+
+        $this->authorizeModule($course);
 
         $data = $request->validated();
         $data['course_id'] = $course->id;
@@ -45,20 +49,28 @@ class ModuleController extends Controller
 
     /**
      * Show edit form for a module.
+     * Admin-only: instructors must use the change request flow.
      */
     public function edit(Course $course, Module $module)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot edit modules directly. Please use the "Request Edit" button.');
+
+        $this->authorizeModule($course, $module);
 
         return view('instructor.modules.edit', compact('course', 'module'));
     }
 
     /**
      * Update module.
+     * Admin-only: instructors must use the change request flow.
      */
     public function update(ModuleRequest $request, Course $course, Module $module)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot update modules directly. Please submit a Request Edit instead.');
+
+        $this->authorizeModule($course, $module);
 
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active', true);
@@ -72,10 +84,14 @@ class ModuleController extends Controller
 
     /**
      * Delete a module.
+     * Admin-only: instructors must use the change request flow.
      */
     public function destroy(Course $course, Module $module)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot delete modules directly. Please submit a Request Delete instead.');
+
+        $this->authorizeModule($course, $module);
 
         $module->delete();
 
@@ -84,10 +100,25 @@ class ModuleController extends Controller
             ->with('success', 'Module deleted!');
     }
 
-    private function authorizeCourse(Course $course): void
+    private function authorizeModule(Course $course, ?Module $module = null): void
     {
-        if ($course->instructor_id !== Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403);
+        // 1. Check Course-level access (Primary owner, Admin, or Course-assigned)
+        $isCourseAdmin = $course->instructor_id === \Illuminate\Support\Facades\Auth::id() || 
+                         \Illuminate\Support\Facades\Auth::user()->isAdmin() || 
+                         $course->assignedInstructors()->where('users.id', \Illuminate\Support\Facades\Auth::id())->exists();
+
+        if ($isCourseAdmin) {
+            return;
         }
+
+        // 2. If module is provided, check Module-level assignment.
+        if ($module) {
+            $isModuleAssigned = $module->assignedInstructors()->where('users.id', \Illuminate\Support\Facades\Auth::id())->exists();
+            if ($isModuleAssigned) {
+                return;
+            }
+        }
+
+        abort(403, 'You do not own this course and are not assigned to it or this module.');
     }
 }

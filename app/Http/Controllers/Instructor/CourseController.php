@@ -16,7 +16,16 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $courses = Auth::user()->instructedCourses()
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        
+        // Fetch courses where user is primary OR assigned via pivot OR assigned to any module
+        $courses = Course::where('instructor_id', $userId)
+            ->orWhereHas('assignedInstructors', function ($q) use ($userId) {
+                $q->where('users.id', $userId);
+            })
+            ->orWhereHas('modules.assignedInstructors', function ($q) use ($userId) {
+                $q->where('users.id', $userId);
+            })
             ->withCount('enrollments')
             ->latest()
             ->paginate(10);
@@ -29,6 +38,8 @@ class CourseController extends Controller
      */
     public function create()
     {
+        abort_unless(Auth::user()->isAdmin(), 403, 'Only administrators can create courses.');
+
         return view('instructor.courses.create');
     }
 
@@ -37,6 +48,8 @@ class CourseController extends Controller
      */
     public function store(CourseRequest $request)
     {
+        abort_unless(Auth::user()->isAdmin(), 403, 'Only administrators can create courses.');
+
         $data = $request->validated();
         $data['instructor_id'] = Auth::id();
         $data['status'] = 'draft'; // Enforce draft status on creation
@@ -47,6 +60,9 @@ class CourseController extends Controller
         }
 
         $course = Course::create($data);
+
+        // Auto-assign the creator to course_user pivot with role 'creator'
+        $course->assignedInstructors()->attach(Auth::id(), ['role' => 'creator']);
 
         return redirect()
             ->route('instructor.courses.show', $course)
@@ -60,17 +76,29 @@ class CourseController extends Controller
     {
         $this->authorizeCourse($course);
 
-        $course->load(['modules.units.lessons']);
+        $course->load(['modules.units.lessons', 'assignedInstructors', 'modules.assignedInstructors']);
 
-        return view('instructor.courses.show', compact('course'));
+        $allInstructors = collect();
+        if (\Illuminate\Support\Facades\Auth::user()->isAdmin()) {
+            $allInstructors = \App\Models\User::whereIn('role', ['admin', 'instructor'])->get();
+        }
+
+        return view('instructor.courses.show', compact('course', 'allInstructors'));
     }
 
     /**
      * Show edit form.
+     * Admins can edit directly; instructors must use the change request flow.
      */
     public function edit(Course $course)
     {
-        $this->authorizeCourse($course);
+        $this->authorizeCourseStrict($course);
+
+        abort_unless(
+            Auth::user()->isAdmin(),
+            403,
+            'Instructors cannot edit courses directly. Please use the "Request Edit" button on the course page.'
+        );
 
         if ($course->status === 'pending') {
             return redirect()->route('instructor.courses.show', $course)
@@ -82,10 +110,17 @@ class CourseController extends Controller
 
     /**
      * Update a course.
+     * Admin-only: instructors must use the change request flow.
      */
     public function update(CourseRequest $request, Course $course)
     {
-        $this->authorizeCourse($course);
+        $this->authorizeCourseStrict($course);
+
+        abort_unless(
+            Auth::user()->isAdmin(),
+            403,
+            'Instructors cannot update courses directly. Please submit a Request Edit instead.'
+        );
 
         if ($course->status === 'pending') {
             return redirect()->route('instructor.courses.show', $course)
@@ -116,7 +151,7 @@ class CourseController extends Controller
      */
     public function submitForReview(Course $course)
     {
-        $this->authorizeCourse($course);
+        $this->authorizeCourseStrict($course);
 
         if ($course->status !== 'draft' && $course->status !== 'rejected') {
             return back()->with('error', 'Only draft or rejected courses can be submitted for review.');
@@ -129,10 +164,17 @@ class CourseController extends Controller
 
     /**
      * Delete a course and its thumbnail.
+     * Admin-only: instructors must use the change request flow.
      */
     public function destroy(Course $course)
     {
-        $this->authorizeCourse($course);
+        $this->authorizeCourseStrict($course);
+
+        abort_unless(
+            Auth::user()->isAdmin(),
+            403,
+            'Instructors cannot delete courses directly. Please submit a Request Delete instead.'
+        );
 
         if ($course->thumbnail) {
             Storage::disk('public')->delete($course->thumbnail);
@@ -150,8 +192,39 @@ class CourseController extends Controller
      */
     private function authorizeCourse(Course $course): void
     {
-        if ($course->instructor_id !== Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403, 'You do not own this course.');
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        $isAdmin = \Illuminate\Support\Facades\Auth::user()->isAdmin();
+
+        if ($course->instructor_id === $userId || $isAdmin) {
+            return;
         }
+
+        if ($course->assignedInstructors()->where('users.id', $userId)->exists()) {
+            return;
+        }
+
+        if ($course->modules()->whereHas('assignedInstructors', function($q) use ($userId) {
+            $q->where('users.id', $userId);
+        })->exists()) {
+            return;
+        }
+
+        abort(403, 'You do not own this course and are not assigned to it.');
+    }
+
+    private function authorizeCourseStrict(Course $course): void
+    {
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        $isAdmin = \Illuminate\Support\Facades\Auth::user()->isAdmin();
+
+        if ($course->instructor_id === $userId || $isAdmin) {
+            return;
+        }
+
+        if ($course->assignedInstructors()->where('users.id', $userId)->exists()) {
+            return;
+        }
+
+        abort(403, 'You do not have permission to manage this entire course.');
     }
 }

@@ -55,6 +55,22 @@
             </div>
         </div>
         @endif
+
+        {{-- Instructor Review --}}
+        @if($submission->instructor_review)
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header fw-semibold bg-info text-dark border-0">
+                <i class="bi bi-person-badge me-2"></i>Instructor Review
+            </div>
+            <div class="card-body bg-light">
+                <div class="mb-3 border-bottom pb-2">
+                    <span class="badge bg-primary">Reviewed by {{ $submission->instructor->name ?? 'Instructor' }}</span>
+                    <small class="text-muted ms-2">{{ $submission->instructor_reviewed_at?->format('d M Y H:i') }}</small>
+                </div>
+                <p class="mb-0 text-dark" style="white-space: pre-wrap;">{{ $submission->instructor_review }}</p>
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- Grading Form --}}

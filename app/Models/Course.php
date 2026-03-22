@@ -43,6 +43,14 @@ class Course extends Model
         return $this->belongsTo(User::class , 'instructor_id');
     }
 
+    /** Instructors specifically assigned to this course via pivot */
+    public function assignedInstructors()
+    {
+        return $this->belongsToMany(User::class, 'course_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
     /** Modules within this course */
     public function modules()
     {

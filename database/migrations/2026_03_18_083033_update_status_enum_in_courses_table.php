@@ -12,7 +12,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE courses MODIFY COLUMN status ENUM('draft', 'pending', 'published', 'rejected', 'archived') DEFAULT 'draft'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE courses MODIFY COLUMN status ENUM('draft', 'pending', 'published', 'rejected', 'archived') DEFAULT 'draft'");
+        } else {
+            Schema::table('courses', function (Blueprint $table) {
+                $table->dropColumn('status');
+            });
+            Schema::table('courses', function (Blueprint $table) {
+                $table->string('status')->default('draft');
+            });
+        }
     }
 
     /**
@@ -20,7 +29,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE courses MODIFY COLUMN status ENUM('draft', 'published', 'archived') DEFAULT 'draft'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE courses MODIFY COLUMN status ENUM('draft', 'published', 'archived') DEFAULT 'draft'");
+        } else {
+            Schema::table('courses', function (Blueprint $table) {
+                $table->dropColumn('status');
+            });
+            Schema::table('courses', function (Blueprint $table) {
+                $table->string('status')->default('draft');
+            });
+        }
     }
 };
 

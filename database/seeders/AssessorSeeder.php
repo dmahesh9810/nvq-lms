@@ -14,11 +14,12 @@ class AssessorSeeder extends Seeder
     public function run(): void
     {
         User::firstOrCreate(
-            ['email' => 'assessor@iqbrave.com'],
+            ['email' => 'assessor@example.com'],
             [
                 'name' => 'Assessor User',
                 'password' => Hash::make('password'),
                 'role' => 'assessor',
+                'email_verified_at' => now(),
             ]
         );
     }

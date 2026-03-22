@@ -14,6 +14,42 @@
     </div>
 </div>
 
+{{-- Filters Card --}}
+<div class="card shadow-sm border-0 rounded-4 mb-4">
+    <div class="card-body bg-light rounded-4">
+        <form method="GET" action="{{ route('assessor.students.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="student_id" class="form-label small fw-semibold">Student</label>
+                <select name="student_id" id="student_id" class="form-select form-select-sm">
+                    <option value="">All Students</option>
+                    @foreach($studentsList as $st)
+                        <option value="{{ $st->id }}" {{ request('student_id') == $st->id ? 'selected' : '' }}>
+                            {{ $st->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="course_id" class="form-label small fw-semibold">Course</label>
+                <select name="course_id" id="course_id" class="form-select form-select-sm">
+                    <option value="">All Courses</option>
+                    @foreach($courses as $c)
+                        <option value="{{ $c->id }}" {{ request('course_id') == $c->id ? 'selected' : '' }}>
+                            {{ Str::limit($c->title, 40) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-funnel me-1"></i>Filter</button>
+                <a href="{{ route('assessor.students.index') }}" class="btn btn-outline-secondary btn-sm" title="Clear Filters"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card shadow-sm border-0 rounded-4">
     <div class="card-body p-0">
         @if($enrollments->isEmpty())
@@ -51,11 +87,16 @@
                                 <span class="badge bg-warning text-dark rounded-pill px-3">{{ $enrollment->pending_lessons }}</span>
                             </td>
                             <td class="pe-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="progress flex-grow-1" style="height: 6px;">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $enrollment->progress_percentage }}%;" aria-valuenow="{{ $enrollment->progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="d-flex flex-column gap-2 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar {{ $enrollment->progress_percentage == 100 ? 'bg-success' : 'bg-primary' }}" role="progressbar" style="width: {{ $enrollment->progress_percentage }}%;" aria-valuenow="{{ $enrollment->progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <span class="ms-2 small fw-bold">{{ $enrollment->progress_percentage }}%</span>
                                     </div>
-                                    <span class="ms-2 small fw-bold">{{ $enrollment->progress_percentage }}%</span>
+                                    <a href="{{ route('assessor.progress.detail', ['student' => $enrollment->user_id, 'course' => $enrollment->course_id]) }}" class="btn btn-sm btn-light border w-100 text-center text-primary" style="font-size: 0.8rem;">
+                                        <i class="bi bi-eye me-1"></i>View Detail
+                                    </a>
                                 </div>
                             </td>
                         </tr>

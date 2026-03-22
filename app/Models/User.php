@@ -104,6 +104,21 @@ class User extends Authenticatable
         return $this->hasMany(Course::class , 'instructor_id');
     }
 
+    /** Courses assigned as instructor/ta */
+    public function assignedCourses()
+    {
+        return $this->belongsToMany(Course::class, 'course_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /** Modules assigned specifically to this instructor/ta */
+    public function assignedModules()
+    {
+        return $this->belongsToMany(Module::class, 'module_user')
+            ->withTimestamps();
+    }
+
     /** Courses this student is enrolled in (via pivot table) */
     public function courses()
     {

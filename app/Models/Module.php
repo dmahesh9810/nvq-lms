@@ -31,6 +31,13 @@ class Module extends Model
         return $this->belongsTo(Course::class);
     }
 
+    /** Instructors specifically assigned to this module via pivot */
+    public function assignedInstructors()
+    {
+        return $this->belongsToMany(User::class, 'module_user')
+            ->withTimestamps();
+    }
+
     /** Units within this module */
     public function units()
     {

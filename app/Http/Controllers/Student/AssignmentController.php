@@ -59,9 +59,9 @@ class AssignmentController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
-        // Block re-submission if already graded
-        if ($existing && $existing->status === 'graded') {
-            return back()->with('error', 'This assignment has already been graded and cannot be resubmitted.');
+        // Block re-submission if already assessed
+        if ($existing && $existing->isAssessed()) {
+            return back()->with('error', 'This assignment has already been assessed and cannot be resubmitted.');
         }
 
         // Store the file on the public disk
@@ -70,10 +70,20 @@ class AssignmentController extends Controller
         if ($existing) {
             // Delete old file and update
             Storage::disk('public')->delete($existing->file_path);
+            
+            // Delete old result if it somehow exists
+            if ($existing->result()->exists()) {
+                $existing->result()->delete();
+            }
+
             $existing->update([
                 'file_path' => $path,
                 'submitted_at' => now(),
-                'status' => 'resubmitted',
+                'status' => AssignmentSubmission::STATUS_RESUBMITTED,
+                'instructor_id' => null,
+                'instructor_review' => null,
+                'instructor_reviewed_at' => null,
+                'assessor_id' => null,
             ]);
         }
         else {
@@ -82,7 +92,7 @@ class AssignmentController extends Controller
                 'user_id' => Auth::id(),
                 'file_path' => $path,
                 'submitted_at' => now(),
-                'status' => 'submitted',
+                'status' => AssignmentSubmission::STATUS_SUBMITTED,
             ]);
         }
 

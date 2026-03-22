@@ -16,7 +16,9 @@ class UnitController extends Controller
      */
     public function create(Course $course, Module $module)
     {
-        $this->authorizeCourse($course);
+        abort_unless(\Illuminate\Support\Facades\Auth::user()->isAdmin(), 403, 'Only administrators can add units.');
+
+        $this->authorizeModule($course, $module);
 
         return view('instructor.units.create', compact('course', 'module'));
     }
@@ -26,7 +28,9 @@ class UnitController extends Controller
      */
     public function store(UnitRequest $request, Course $course, Module $module)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403, 'Only administrators can add units.');
+
+        $this->authorizeModule($course, $module);
 
         $data = $request->validated();
         $data['module_id'] = $module->id;
@@ -45,20 +49,28 @@ class UnitController extends Controller
 
     /**
      * Show edit form for a unit.
+     * Admin-only: instructors must use the change request flow.
      */
     public function edit(Course $course, Module $module, Unit $unit)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot edit units directly. Please use the "Request Edit" button.');
+
+        $this->authorizeModule($course, $module);
 
         return view('instructor.units.edit', compact('course', 'module', 'unit'));
     }
 
     /**
      * Update a unit.
+     * Admin-only: instructors must use the change request flow.
      */
     public function update(UnitRequest $request, Course $course, Module $module, Unit $unit)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot update units directly. Please submit a Request Edit instead.');
+
+        $this->authorizeModule($course, $module);
 
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active', true);
@@ -72,10 +84,14 @@ class UnitController extends Controller
 
     /**
      * Delete a unit.
+     * Admin-only: instructors must use the change request flow.
      */
     public function destroy(Course $course, Module $module, Unit $unit)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot delete units directly. Please submit a Request Delete instead.');
+
+        $this->authorizeModule($course, $module);
 
         $unit->delete();
 
@@ -84,10 +100,21 @@ class UnitController extends Controller
             ->with('success', 'Unit deleted!');
     }
 
-    private function authorizeCourse(Course $course): void
+    private function authorizeModule(Course $course, Module $module): void
     {
-        if ($course->instructor_id !== Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403);
+        $isCourseAdmin = $course->instructor_id === \Illuminate\Support\Facades\Auth::id() || 
+                         \Illuminate\Support\Facades\Auth::user()->isAdmin() || 
+                         $course->assignedInstructors()->where('users.id', \Illuminate\Support\Facades\Auth::id())->exists();
+
+        if ($isCourseAdmin) {
+            return;
         }
+
+        $isModuleAssigned = $module->assignedInstructors()->where('users.id', \Illuminate\Support\Facades\Auth::id())->exists();
+        if ($isModuleAssigned) {
+            return;
+        }
+
+        abort(403, 'You do not own this course and are not assigned to it or this module.');
     }
 }

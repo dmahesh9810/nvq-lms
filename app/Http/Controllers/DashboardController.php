@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChangeRequest;
 use App\Models\Course;
 use App\Models\User;
 use App\Models\Enrollment;
@@ -17,17 +18,19 @@ class DashboardController extends Controller
     public function admin()
     {
         $stats = [
-            'total_users' => User::count(),
-            'total_students' => User::where('role', 'student')->count(),
-            'total_instructors' => User::where('role', 'instructor')->count(),
-            'total_courses' => Course::count(),
-            'published_courses' => Course::where('status', 'published')->count(),
-            'total_enrollments' => Enrollment::count(),
+            'total_users'        => User::count(),
+            'total_students'     => User::where('role', 'student')->count(),
+            'total_instructors'  => User::where('role', 'instructor')->count(),
+            'total_courses'      => Course::count(),
+            'published_courses'  => Course::where('status', 'published')->count(),
+            'total_enrollments'  => Enrollment::count(),
+            'pending_requests'   => ChangeRequest::where('status', 'pending')->count(),
         ];
 
-        $pendingCourses = Course::with('instructor')->where('status', 'pending')->latest()->get();
+        $pendingCourses   = Course::with('instructor')->where('status', 'pending')->latest()->get();
+        $pendingRequests  = ChangeRequest::with('requester')->where('status', 'pending')->latest()->take(5)->get();
 
-        return view('dashboard.admin', compact('stats', 'pendingCourses'));
+        return view('dashboard.admin', compact('stats', 'pendingCourses', 'pendingRequests'));
     }
 
     /**
@@ -56,17 +59,38 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        $courses = $user->instructedCourses()->withCount(['enrollments', 'modules'])->latest()->take(5)->get();
+        // 1. Fetch all visible courses (created, assigned directly, or assigned via modules)
+        $userId = $user->id;
+        $allCourses = Course::where('instructor_id', $userId)
+            ->orWhereHas('assignedInstructors', function ($q) use ($userId) {
+                $q->where('users.id', $userId);
+            })
+            ->orWhereHas('modules.assignedInstructors', function ($q) use ($userId) {
+                $q->where('users.id', $userId);
+            })
+            ->withCount(['enrollments', 'modules'])
+            ->get();
+
+        $recentCourses = $allCourses->sortByDesc('created_at')->take(5);
+
+        // 3. Fetch specific assigned modules with their parent courses
+        $assignedModules = $user->assignedModules()
+            ->with('course')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // 4. Calculate total distinct students across all accessible courses
+        $courseIds = $allCourses->pluck('id')->toArray();
+        $totalStudents = empty($courseIds) ? 0 : Enrollment::whereIn('course_id', $courseIds)->distinct('user_id')->count();
 
         $stats = [
-            'my_courses' => $user->instructedCourses()->count(),
-            'published_courses' => $user->instructedCourses()->where('status', 'published')->count(),
-            'total_students' => Enrollment::whereIn(
-            'course_id', $user->instructedCourses()->pluck('id')
-        )->distinct('user_id')->count(),
+            'my_courses' => $allCourses->count(),
+            'published_courses' => $allCourses->where('status', 'published')->count(),
+            'total_students' => $totalStudents,
         ];
 
-        return view('dashboard.instructor', compact('stats', 'courses'));
+        return view('dashboard.instructor', compact('stats', 'recentCourses', 'assignedModules'));
     }
 
     /**

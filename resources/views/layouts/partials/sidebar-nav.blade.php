@@ -26,8 +26,11 @@
     {{-- ── Admin Links ── --}}
     @if ($role === 'admin')
         <div class="nav-section-label">Administration</div>
-        <a href="{{ route('instructor.courses.index') }}" class="nav-link {{ request()->routeIs('instructor.courses.*') ? 'active' : '' }}">
+        <a href="{{ route('instructor.courses.index') }}" class="nav-link {{ request()->routeIs('instructor.courses.index', 'instructor.courses.show', 'instructor.courses.edit', 'instructor.courses.modules.*', 'instructor.courses.units.*', 'instructor.courses.lessons.*') ? 'active' : '' }}">
             <i class="bi bi-book-half"></i> All Courses
+        </a>
+        <a href="{{ route('instructor.courses.create') }}" class="nav-link {{ request()->routeIs('instructor.courses.create') ? 'active' : '' }}">
+            <i class="bi bi-plus-circle"></i> New Course
         </a>
         <a href="{{ route('instructor.assignments.index') }}" class="nav-link {{ request()->routeIs('instructor.assignments.*') ? 'active' : '' }}">
             <i class="bi bi-journal-text"></i> Assignments
@@ -41,27 +44,35 @@
     @endif
 
     {{-- ── Instructor Links ── --}}
-    @if (in_array($role, ['admin', 'instructor']))
+    @if ($role === 'instructor')
         <div class="nav-section-label">Teaching</div>
         <a href="{{ route('instructor.courses.index') }}" class="nav-link {{ request()->routeIs('instructor.courses.*') ? 'active' : '' }}">
             <i class="bi bi-journals"></i> My Courses
         </a>
-        <a href="{{ route('instructor.courses.create') }}" class="nav-link {{ request()->routeIs('instructor.courses.create') ? 'active' : '' }}">
-            <i class="bi bi-plus-circle"></i> New Course
+        <a href="{{ route('instructor.change-requests.index') }}" class="nav-link {{ request()->routeIs('instructor.change-requests.*') ? 'active' : '' }}">
+            <i class="bi bi-arrow-left-right"></i> My Change Requests
         </a>
-        @if($role === 'instructor')
         <a href="{{ route('instructor.assignments.index') }}" class="nav-link {{ request()->routeIs('instructor.assignments.*') ? 'active' : '' }}">
             <i class="bi bi-journal-text"></i> Assignments
         </a>
         <a href="{{ route('instructor.quizzes.index') }}" class="nav-link {{ request()->routeIs('instructor.quizzes.*') ? 'active' : '' }}">
             <i class="bi bi-patch-question"></i> Quizzes
         </a>
-        @endif
     @endif
 
     {{-- ── Assessor Links ── --}}
     @if (in_array($role, ['admin', 'assessor']))
         <div class="nav-section-label">Assessment</div>
+        
+        <a href="{{ route('assessor.progress.index') }}" class="nav-link {{ request()->routeIs('assessor.progress.*') ? 'active' : '' }}">
+            <i class="bi bi-graph-up-arrow"></i> Progress Tracking
+        </a>
+        <a href="{{ route('assessor.students.index') }}" class="nav-link {{ request()->routeIs('assessor.students.*') ? 'active' : '' }}">
+            <i class="bi bi-people"></i> Manage Students
+        </a>
+        <a href="{{ route('assessor.courses.index') }}" class="nav-link {{ request()->routeIs('assessor.courses.*') ? 'active' : '' }}">
+            <i class="bi bi-journal-check"></i> Course Analytics
+        </a>
         <a href="{{ route('assessor.grading.index') }}" class="nav-link {{ request()->routeIs('assessor.grading.*') ? 'active' : '' }}">
             <i class="bi bi-clipboard-check"></i> Grading Queue
         </a>

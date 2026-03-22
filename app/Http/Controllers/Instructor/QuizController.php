@@ -14,8 +14,15 @@ class QuizController extends Controller
     /** List all quizzes for this instructor's courses */
     public function index()
     {
-        $quizzes = Quiz::whereHas('unit.module.course', function ($q) {
-            $q->where('instructor_id', Auth::id());
+        $userId = Auth::id();
+        $quizzes = Quiz::whereHas('unit.module.course', function ($q) use ($userId) {
+            $q->where('instructor_id', $userId)
+              ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
+                  $q2->where('users.id', $userId);
+              })
+              ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
+                  $q3->where('users.id', $userId);
+              });
         })->with('unit.module.course')->withCount('questions')->latest()->paginate(15);
 
         return view('instructor.quizzes.index', compact('quizzes'));
@@ -24,8 +31,15 @@ class QuizController extends Controller
     /** Show create form */
     public function create()
     {
-        $units = Unit::whereHas('module.course', function ($q) {
-            $q->where('instructor_id', Auth::id());
+        $userId = Auth::id();
+        $units = Unit::whereHas('module.course', function ($q) use ($userId) {
+            $q->where('instructor_id', $userId)
+              ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
+                  $q2->where('users.id', $userId);
+              })
+              ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
+                  $q3->where('users.id', $userId);
+              });
         })->with('module.course')->get();
 
         return view('instructor.quizzes.create', compact('units'));
@@ -43,9 +57,7 @@ class QuizController extends Controller
 
         // Authorization: unit must belong to this instructor's course
         $unit = Unit::with('module.course')->findOrFail($data['unit_id']);
-        if ($unit->module->course->instructor_id !== Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403, 'You do not own the course this unit belongs to.');
-        }
+        $this->authorizeUnit($unit);
 
         $data['is_active'] = $request->boolean('is_active', true);
         $quiz = Quiz::create($data);
@@ -58,8 +70,15 @@ class QuizController extends Controller
     public function edit(Quiz $quiz)
     {
         $this->authorizeQuiz($quiz);
-        $units = Unit::whereHas('module.course', function ($q) {
-            $q->where('instructor_id', Auth::id());
+        $userId = Auth::id();
+        $units = Unit::whereHas('module.course', function ($q) use ($userId) {
+            $q->where('instructor_id', $userId)
+              ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
+                  $q2->where('users.id', $userId);
+              })
+              ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
+                  $q3->where('users.id', $userId);
+              });
         })->with('module.course')->get();
 
         return view('instructor.quizzes.edit', compact('quiz', 'units'));
@@ -144,9 +163,32 @@ class QuizController extends Controller
 
     private function authorizeQuiz(Quiz $quiz): void
     {
-        if ($quiz->unit->module->course->instructor_id !== Auth::id()
-        && !Auth::user()->isAdmin()) {
-            abort(403);
+        $this->authorizeUnit($quiz->unit);
+    }
+
+    private function authorizeUnit(Unit $unit): void
+    {
+        $userId = Auth::id();
+        if (Auth::user()->isAdmin()) {
+            return;
         }
+
+        $course = $unit->module->course;
+
+        if ($course->instructor_id === $userId) {
+            return;
+        }
+
+        if ($course->assignedInstructors()->where('users.id', $userId)->exists()) {
+            return;
+        }
+
+        if ($course->modules()->whereHas('assignedInstructors', function($q) use ($userId) {
+            $q->where('users.id', $userId);
+        })->exists()) {
+            return;
+        }
+
+        abort(403, 'You do not own the course this unit belongs to.');
     }
 }

@@ -18,7 +18,9 @@ class LessonController extends Controller
      */
     public function create(Course $course, Module $module, Unit $unit)
     {
-        $this->authorizeCourse($course);
+        abort_unless(\Illuminate\Support\Facades\Auth::user()->isAdmin(), 403, 'Only administrators can add lessons.');
+
+        $this->authorizeModule($course, $module);
 
         return view('instructor.lessons.create', compact('course', 'module', 'unit'));
     }
@@ -28,7 +30,9 @@ class LessonController extends Controller
      */
     public function store(LessonRequest $request, Course $course, Module $module, Unit $unit)
     {
-        $this->authorizeCourse($course);
+        abort_unless(\Illuminate\Support\Facades\Auth::user()->isAdmin(), 403, 'Only administrators can add lessons.');
+
+        $this->authorizeModule($course, $module);
 
         $data = $request->validated();
         $data['unit_id'] = $unit->id;
@@ -55,20 +59,28 @@ class LessonController extends Controller
 
     /**
      * Show edit form for a lesson.
+     * Admin-only: instructors must use the change request flow.
      */
     public function edit(Course $course, Module $module, Unit $unit, Lesson $lesson)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot edit lessons directly. Please use the "Request Edit" button.');
+
+        $this->authorizeModule($course, $module);
 
         return view('instructor.lessons.edit', compact('course', 'module', 'unit', 'lesson'));
     }
 
     /**
      * Update lesson, replacing PDF if a new one is uploaded.
+     * Admin-only: instructors must use the change request flow.
      */
     public function update(LessonRequest $request, Course $course, Module $module, Unit $unit, Lesson $lesson)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot update lessons directly. Please submit a Request Edit instead.');
+
+        $this->authorizeModule($course, $module);
 
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active', true);
@@ -92,10 +104,14 @@ class LessonController extends Controller
 
     /**
      * Delete a lesson and clean up any stored files.
+     * Admin-only: instructors must use the change request flow.
      */
     public function destroy(Course $course, Module $module, Unit $unit, Lesson $lesson)
     {
-        $this->authorizeCourse($course);
+        abort_unless(Auth::user()->isAdmin(), 403,
+            'Instructors cannot delete lessons directly. Please submit a Request Delete instead.');
+
+        $this->authorizeModule($course, $module);
 
         if ($lesson->pdf_path) {
             Storage::disk('public')->delete($lesson->pdf_path);
@@ -108,10 +124,21 @@ class LessonController extends Controller
             ->with('success', 'Lesson deleted!');
     }
 
-    private function authorizeCourse(Course $course): void
+    private function authorizeModule(Course $course, Module $module): void
     {
-        if ($course->instructor_id !== Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403);
+        $isCourseAdmin = $course->instructor_id === \Illuminate\Support\Facades\Auth::id() || 
+                         \Illuminate\Support\Facades\Auth::user()->isAdmin() || 
+                         $course->assignedInstructors()->where('users.id', \Illuminate\Support\Facades\Auth::id())->exists();
+
+        if ($isCourseAdmin) {
+            return;
         }
+
+        $isModuleAssigned = $module->assignedInstructors()->where('users.id', \Illuminate\Support\Facades\Auth::id())->exists();
+        if ($isModuleAssigned) {
+            return;
+        }
+
+        abort(403, 'You do not own this course and are not assigned to it or this module.');
     }
 }

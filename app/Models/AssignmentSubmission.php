@@ -9,12 +9,20 @@ class AssignmentSubmission extends Model
 {
     use HasFactory;
 
+    public const STATUS_SUBMITTED = 'submitted';
+    public const STATUS_RESUBMITTED = 'resubmitted';
+    public const STATUS_REVIEWED = 'reviewed';
+    public const STATUS_ASSESSED = 'assessed';
+
     protected $fillable = [
         'assignment_id', 'user_id', 'file_path', 'submitted_at', 'status',
+        'instructor_id', 'instructor_review', 'instructor_reviewed_at',
+        'assessor_id',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
+        'instructor_reviewed_at' => 'datetime',
     ];
 
     /** The assignment this submission belongs to */
@@ -35,9 +43,25 @@ class AssignmentSubmission extends Model
         return $this->hasOne(AssignmentResult::class, 'submission_id');
     }
 
-    /** Helper: has this submission been graded? */
-    public function isGraded(): bool
+    public function isAssessed(): bool
     {
-        return $this->result()->exists();
+        return $this->result()->exists() && $this->status === self::STATUS_ASSESSED;
+    }
+
+    public function isReviewed(): bool
+    {
+        return $this->status === self::STATUS_REVIEWED;
+    }
+
+    /** The instructor who reviewed the assignment */
+    public function instructor()
+    {
+        return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    /** The assessor who graded the assignment */
+    public function assessor()
+    {
+        return $this->belongsTo(User::class, 'assessor_id');
     }
 }

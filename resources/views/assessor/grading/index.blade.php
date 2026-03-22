@@ -38,7 +38,7 @@
                     <td><small class="text-muted">{{ $submission->assignment->unit->module->course->title }}</small></td>
                     <td><small>{{ $submission->submitted_at->diffForHumans() }}</small></td>
                     <td>
-                        <span class="badge bg-{{ $submission->status === 'resubmitted' ? 'warning text-dark' : 'info text-dark' }}">
+                        <span class="badge bg-{{ $submission->status === 'reviewed' ? 'primary' : 'secondary' }}">
                             {{ ucfirst($submission->status) }}
                         </span>
                     </td>

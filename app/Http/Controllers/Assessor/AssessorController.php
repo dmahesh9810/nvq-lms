@@ -50,29 +50,44 @@ class AssessorController extends Controller
     }
 
     /**
-     * Student Progress Monitoring List
+     * Student Progress Monitoring List (with filters)
      */
-    public function students()
+    public function students(Request $request)
     {
-        // Load enrollments
-        $enrollments = Enrollment::with(['student', 'course'])
-            ->latest()
-            ->paginate(15);
+        // Fetch dropdown data
+        $courses = Course::where('status', 'published')->orderBy('title')->get();
+        $studentsList = User::whereHas('enrollments')->orderBy('name')->get();
+
+        // Base Query: Enrollments with filters and eager loading
+        $query = Enrollment::with(['student:id,name,email', 'course:id,title'])
+            ->when($request->course_id, function ($q) use ($request) {
+                return $q->where('course_id', $request->course_id);
+            })
+            ->when($request->student_id, function ($q) use ($request) {
+                return $q->where('user_id', $request->student_id);
+            })
+            ->when($request->from_date, function ($q) use ($request) {
+                return $q->whereDate('enrolled_at', '>=', $request->from_date);
+            })
+            ->when($request->to_date, function ($q) use ($request) {
+                return $q->whereDate('enrolled_at', '<=', $request->to_date);
+            });
+
+        $enrollments = $query->latest('enrolled_at')->paginate(15)->withQueryString();
 
         if ($enrollments->isNotEmpty()) {
             $userIds = $enrollments->pluck('user_id')->unique();
             $courseIds = $enrollments->pluck('course_id')->unique();
 
             // Count total lessons per course
-            $lessonsPerCourse = DB::table('courses')
-                ->join('modules', 'courses.id', '=', 'modules.course_id')
-                ->join('units', 'modules.id', '=', 'units.module_id')
-                ->join('lessons', 'units.id', '=', 'lessons.unit_id')
-                ->whereIn('courses.id', $courseIds)
+            $lessonsPerCourse = DB::table('lessons')
+                ->join('units', 'lessons.unit_id', '=', 'units.id')
+                ->join('modules', 'units.module_id', '=', 'modules.id')
+                ->whereIn('modules.course_id', $courseIds)
                 ->where('lessons.is_active', true)
-                ->groupBy('courses.id')
-                ->select('courses.id', DB::raw('count(lessons.id) as total_lessons'))
-                ->pluck('total_lessons', 'id');
+                ->groupBy('modules.course_id')
+                ->select('modules.course_id', DB::raw('count(lessons.id) as total_lessons'))
+                ->pluck('total_lessons', 'course_id');
 
             // Count completed lessons per user per course
             $completedPerUserCourse = DB::table('lesson_progress')
@@ -96,37 +111,41 @@ class AssessorController extends Controller
                 
                 $enrollment->total_lessons = $total;
                 $enrollment->completed_lessons = $completed;
-                $enrollment->progress_percentage = $total > 0 ? round(($completed / $total) * 100) : 0;
+                $enrollment->progress_percentage = $total > 0 ? (int)round(($completed / $total) * 100) : 0;
                 $enrollment->pending_lessons = $total - $completed;
             }
         }
 
-        return view('assessor.students.index', compact('enrollments'));
+        return view('assessor.students.index', compact('enrollments', 'courses', 'studentsList'));
     }
 
     /**
-     * Course Performance Analytics List
+     * Course Performance Analytics List (with filters)
      */
-    public function courses()
+    public function courses(Request $request)
     {
-        $courses = Course::with('instructor')
+        $allCourses = Course::where('status', 'published')->orderBy('title')->get();
+
+        $query = Course::with('instructor:id,name')
             ->withCount('enrollments')
-            ->latest()
-            ->paginate(15);
+            ->when($request->course_id, function ($q) use ($request) {
+                return $q->where('id', $request->course_id);
+            });
+
+        $courses = $query->latest()->paginate(15)->withQueryString();
             
         if ($courses->isNotEmpty()) {
             $courseIds = $courses->pluck('id');
 
             // Total active lessons per course
-            $lessonsPerCourse = DB::table('courses')
-                ->join('modules', 'courses.id', '=', 'modules.course_id')
-                ->join('units', 'modules.id', '=', 'units.module_id')
-                ->join('lessons', 'units.id', '=', 'lessons.unit_id')
-                ->whereIn('courses.id', $courseIds)
+            $lessonsPerCourse = DB::table('lessons')
+                ->join('units', 'lessons.unit_id', '=', 'units.id')
+                ->join('modules', 'units.module_id', '=', 'modules.id')
+                ->whereIn('modules.course_id', $courseIds)
                 ->where('lessons.is_active', true)
-                ->groupBy('courses.id')
-                ->select('courses.id', DB::raw('count(lessons.id) as total_lessons'))
-                ->pluck('total_lessons', 'id');
+                ->groupBy('modules.course_id')
+                ->select('modules.course_id', DB::raw('count(lessons.id) as total_lessons'))
+                ->pluck('total_lessons', 'course_id');
 
             // Total completed lessons across all users per course
             $completedPerCourse = DB::table('lesson_progress')
@@ -143,10 +162,10 @@ class AssessorController extends Controller
                 $expectedCompletes = $totalLessons * $course->enrollments_count;
                 $actualCompletes = $completedPerCourse[$course->id] ?? 0;
 
-                $course->average_progress = $expectedCompletes > 0 ? round(($actualCompletes / $expectedCompletes) * 100) : 0;
+                $course->average_progress = $expectedCompletes > 0 ? (int)round(($actualCompletes / $expectedCompletes) * 100) : 0;
             }
         }
 
-        return view('assessor.courses.index', compact('courses'));
+        return view('assessor.courses.index', compact('courses', 'allCourses'));
     }
 }

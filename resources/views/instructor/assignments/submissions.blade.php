@@ -22,6 +22,7 @@
                     <th>Status</th>
                     <th>Competency</th>
                     <th>File</th>
+                    <th>Review</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,7 +32,7 @@
                     <td>{{ $submission->submitted_at->format('d M Y H:i') }}</td>
                     <td>
                         @php
-                            $statusColors = ['submitted' => 'info', 'resubmitted' => 'warning', 'graded' => 'success'];
+                            $statusColors = ['submitted' => 'info', 'resubmitted' => 'warning', 'reviewed' => 'primary', 'assessed' => 'success', 'graded' => 'success'];
                         @endphp
                         <span class="badge bg-{{ $statusColors[$submission->status] ?? 'secondary' }} text-dark">
                             {{ ucfirst($submission->status) }}
@@ -52,11 +53,52 @@
                             <i class="bi bi-download me-1"></i>Download
                         </a>
                     </td>
+                    <td>
+                        @if(!$submission->isReviewed() && !$submission->isAssessed())
+                            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#reviewModal{{ $submission->id }}">
+                                Add Review
+                            </button>
+                        @else
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#reviewModal{{ $submission->id }}">
+                                View Review
+                            </button>
+                        @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
 </div>
+
+<!-- Modals for Reviews -->
+@foreach($submissions as $submission)
+    <div class="modal fade" id="reviewModal{{ $submission->id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('instructor.assignments.submissions.review', $submission->id) }}" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Instructor Review for {{ $submission->student->name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Your Review/Feedback</label>
+                            <textarea name="instructor_review" class="form-control" rows="5" required {{ $submission->isAssessed() ? 'disabled' : '' }}>{{ $submission->instructor_review }}</textarea>
+                            <small class="text-muted mt-2 d-block">This review will be forwarded to the Assessor.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        @if(!$submission->isAssessed())
+                            <button type="submit" class="btn btn-primary">Save Review & Forward</button>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endforeach
 @endif
 @endsection
