@@ -16,6 +16,8 @@ class Certificate extends Model
         'certificate_number',
         'issued_at',
         'status',
+        'nvq_level',
+        'assessor_id',
     ];
 
     protected $casts = [
@@ -34,6 +36,12 @@ class Certificate extends Model
     public function course()
     {
         return $this->belongsTo(Course::class);
+    }
+
+    /** The assessor who approved this certificate */
+    public function assessor()
+    {
+        return $this->belongsTo(User::class, 'assessor_id');
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────────────

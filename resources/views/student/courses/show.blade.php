@@ -48,7 +48,28 @@
                     </div>
                     @foreach ($module->units as $unit)
                     <div class="ms-2">
-                        <div class="unit-title">{{ $unit->title }}</div>
+                        <div class="unit-title d-flex align-items-center justify-content-between mb-2">
+                            <span>{{ $unit->title }}</span>
+                            @php
+                                $competencyCode = $unit->nvq_unit_code ? '<span class="badge bg-secondary me-1" style="font-size: 0.6rem;">'.$unit->nvq_unit_code.'</span>' : '';
+                                $competency = $unit->competencyAssessments->first();
+                                $status = $competency ? $competency->status : 'not_assessed';
+                                $badgeClass = match($status) {
+                                    'competent' => 'bg-success',
+                                    'not_competent' => 'bg-danger',
+                                    default => 'bg-warning text-dark'
+                                };
+                                $badgeLabel = match($status) {
+                                    'competent' => '<i class="bi bi-check-circle me-1"></i>Competent',
+                                    'not_competent' => '<i class="bi bi-x-circle me-1"></i>NYC',
+                                    default => '<i class="bi bi-dash-circle me-1"></i>Pending'
+                                };
+                            @endphp
+                            <div>
+                                {!! $competencyCode !!}
+                                <span class="badge {{ $badgeClass }} rounded-pill" style="font-size: 0.6rem;">{!! $badgeLabel !!}</span>
+                            </div>
+                        </div>
                         @foreach ($unit->lessons as $lesson)
                         <a href="{{ route('student.lessons.show', [$course, $lesson]) }}"
                            class="lesson-link {{ in_array($lesson->id, $completedLessonIds) ? 'completed' : '' }}">

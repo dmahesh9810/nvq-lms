@@ -138,22 +138,24 @@ class AssignmentController extends Controller
 
         $data = $request->validate([
             'instructor_review' => 'required|string|max:2000',
+            'instructor_competency_status' => 'required|in:competent,not_yet_competent',
         ]);
 
-        if ($submission->isAssessed()) {
-            return back()->with('error', 'Cannot alter review for a submission that has already been assessed.');
+        if ($submission->isAssessorActioned()) {
+            return back()->with('error', 'Cannot alter review for a submission that has already been verified by the assessor.');
         }
 
         DB::transaction(function () use ($submission, $data) {
             $submission->update([
                 'instructor_id' => Auth::id(),
                 'instructor_review' => $data['instructor_review'],
+                'instructor_competency_status' => $data['instructor_competency_status'],
                 'instructor_reviewed_at' => now(),
-                'status' => AssignmentSubmission::STATUS_REVIEWED,
+                'status' => AssignmentSubmission::STATUS_INSTRUCTOR_ASSESSED,
             ]);
         });
 
-        return back()->with('success', 'Submission reviewed and forwarded to the assessor.');
+        return back()->with('success', 'Submission evaluated and forwarded to the assessor for verification.');
     }
 
     /** Ensure the instructor owns this unit's course */

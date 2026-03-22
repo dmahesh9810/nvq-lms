@@ -39,9 +39,9 @@
                         </span>
                     </td>
                     <td>
-                        @if($submission->result)
-                            <span class="badge bg-{{ $submission->result->competencyBadge() }} fs-6 px-3 py-2">
-                                {{ $submission->result->competencyLabel() }}
+                        @if($submission->instructor_competency_status)
+                            <span class="badge bg-{{ $submission->instructor_competency_status === 'competent' ? 'success' : 'danger' }} fs-6 px-3 py-2">
+                                {{ $submission->instructor_competency_status === 'competent' ? 'Competent' : 'Not Yet Competent' }}
                             </span>
                         @else
                             <span class="text-muted">Pending</span>
@@ -54,9 +54,9 @@
                         </a>
                     </td>
                     <td>
-                        @if(!$submission->isReviewed() && !$submission->isAssessed())
+                        @if(!$submission->isInstructorAssessed() && !$submission->isAssessorActioned())
                             <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#reviewModal{{ $submission->id }}">
-                                Add Review
+                                Add Review & Grade
                             </button>
                         @else
                             <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#reviewModal{{ $submission->id }}">
@@ -84,15 +84,23 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
+                            <label class="form-label fw-bold">Competency Decision</label>
+                            <select name="instructor_competency_status" class="form-select" required {{ $submission->isAssessorActioned() ? 'disabled' : '' }}>
+                                <option value="">--- Select Status ---</option>
+                                <option value="competent" {{ $submission->instructor_competency_status === 'competent' ? 'selected' : '' }}>Competent (C)</option>
+                                <option value="not_yet_competent" {{ $submission->instructor_competency_status === 'not_yet_competent' ? 'selected' : '' }}>Not Yet Competent (NYC)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label fw-bold">Your Review/Feedback</label>
-                            <textarea name="instructor_review" class="form-control" rows="5" required {{ $submission->isAssessed() ? 'disabled' : '' }}>{{ $submission->instructor_review }}</textarea>
-                            <small class="text-muted mt-2 d-block">This review will be forwarded to the Assessor.</small>
+                            <textarea name="instructor_review" class="form-control" rows="5" required {{ $submission->isAssessorActioned() ? 'disabled' : '' }}>{{ $submission->instructor_review }}</textarea>
+                            <small class="text-muted mt-2 d-block">This grade and review will be forwarded to the Assessor for verification.</small>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        @if(!$submission->isAssessed())
-                            <button type="submit" class="btn btn-primary">Save Review & Forward</button>
+                        @if(!$submission->isAssessorActioned())
+                            <button type="submit" class="btn btn-primary">Save Grade & Forward</button>
                         @endif
                     </div>
                 </form>

@@ -9,7 +9,7 @@
         <h5 class="mb-1 fw-bold">My Courses</h5>
         <p class="text-muted mb-0 small">Manage your courses, modules, units, and lessons.</p>
     </div>
-    @if(auth()->user()->isAdmin())
+    @if(auth()->user()->isAdmin() || auth()->user()->isInstructor())
     <a href="{{ route('instructor.courses.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle me-2"></i>New Course
     </a>
@@ -22,7 +22,7 @@
             <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
             <h5 class="mt-3">No courses yet</h5>
             <p class="text-muted">Create your first course to get started.</p>
-            @if(auth()->user()->isAdmin())
+            @if(auth()->user()->isAdmin() || auth()->user()->isInstructor())
             <a href="{{ route('instructor.courses.create') }}" class="btn btn-primary btn-sm">Create Course</a>
             @endif
         </div>

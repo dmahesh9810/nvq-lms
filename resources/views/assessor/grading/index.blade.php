@@ -38,13 +38,16 @@
                     <td><small class="text-muted">{{ $submission->assignment->unit->module->course->title }}</small></td>
                     <td><small>{{ $submission->submitted_at->diffForHumans() }}</small></td>
                     <td>
-                        <span class="badge bg-{{ $submission->status === 'reviewed' ? 'primary' : 'secondary' }}">
-                            {{ ucfirst($submission->status) }}
+                        <span class="badge bg-{{ $submission->status === 'instructor_assessed' ? 'primary' : 'secondary' }}">
+                            Instructor Assessed
+                        </span><br>
+                        <span class="badge bg-{{ $submission->instructor_competency_status === 'competent' ? 'success' : 'danger' }} mt-1">
+                            {{ $submission->instructor_competency_status === 'competent' ? 'C' : 'NYC' }}
                         </span>
                     </td>
                     <td>
                         <a href="{{ route('assessor.grading.show', $submission) }}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-eye me-1"></i>Grade
+                            <i class="bi bi-eye me-1"></i>Verify
                         </a>
                     </td>
                 </tr>
@@ -56,8 +59,8 @@
 <div>{{ $pending->links() }}</div>
 @endif
 
-{{-- Recently Graded --}}
-<h5 class="fw-semibold mb-3">✅ Recently Graded (by you)</h5>
+{{-- Recently Verified --}}
+<h5 class="fw-semibold mb-3">✅ Recently Verified (by you)</h5>
 @if($recentlyGraded->isEmpty())
     <div class="alert alert-info">You have not graded any submissions yet.</div>
 @else
@@ -68,24 +71,27 @@
                 <tr>
                     <th>Student</th>
                     <th>Assignment</th>
-                    <th>Result</th>
-                    <th>Graded</th>
+                    <th>Instructor Note</th>
+                    <th>Verified</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($recentlyGraded as $result)
+                @foreach($recentlyGraded as $submission)
                 <tr>
-                    <td>{{ $result->submission->student->name }}</td>
-                    <td>{{ $result->submission->assignment->title }}</td>
+                    <td>{{ $submission->student->name }}</td>
+                    <td>{{ $submission->assignment->title }}</td>
                     <td>
-                        <span class="badge bg-{{ $result->competencyBadge() }} fs-6 px-3 py-2">
-                            {{ $result->competencyLabel() }}
+                        <span class="badge bg-{{ $submission->instructor_competency_status === 'competent' ? 'success' : 'danger' }} fs-6 px-3 py-2">
+                            {{ $submission->instructor_competency_status === 'competent' ? 'Competent' : 'NYC' }}
                         </span>
+                        @if($submission->assessor_verification_note)
+                        <br><small class="text-muted">{{ Str::limit($submission->assessor_verification_note, 20) }}</small>
+                        @endif
                     </td>
-                    <td><small class="text-muted">{{ $result->graded_at->format('d M Y') }}</small></td>
+                    <td><small class="text-muted">{{ $submission->verified_at->format('d M Y') }}</small></td>
                     <td>
-                        <a href="{{ route('assessor.grading.show', $result->submission) }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ route('assessor.grading.show', $submission) }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-eye"></i>
                         </a>
                     </td>

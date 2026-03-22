@@ -7,7 +7,7 @@
 <div class="d-flex align-items-center mb-4">
     <a href="{{ route('assessor.grading.index') }}" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a>
     <div>
-        <h2 class="fw-bold mb-0">Grade Submission</h2>
+        <h2 class="fw-bold mb-0">Verify Submission</h2>
         <small class="text-muted">{{ $submission->assignment->unit->module->course->title }} → {{ $submission->assignment->title }}</small>
     </div>
 </div>
@@ -73,75 +73,66 @@
         @endif
     </div>
 
-    {{-- Grading Form --}}
+    {{-- Verification Form --}}
     <div class="col-md-7">
         <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white fw-semibold">
-                <i class="bi bi-clipboard-check me-2"></i>NVQ Competency Assessment
+            <div class="card-header bg-success text-white fw-semibold">
+                <i class="bi bi-shield-check me-2"></i>NVQ Assessor Verification
             </div>
             <div class="card-body p-4">
 
                 {{-- Show existing result if re-grading --}}
-                @if($submission->result)
+                @if($submission->isAssessorActioned())
                 <div class="alert alert-info py-2 mb-3">
-                    <strong>Previously graded:</strong>
-                    <span class="badge bg-{{ $submission->result->competencyBadge() }} ms-1">{{ $submission->result->competencyLabel() }}</span>
-                    by {{ $submission->result->assessor->name }}
+                    <strong>Previously Verified:</strong>
+                    {{ $submission->verified_at->format('d M Y H:i') }}
+                    by {{ $submission->assessor->name }}
                 </div>
                 @endif
 
-                <form action="{{ route('assessor.grading.grade', $submission) }}" method="POST">
+                <div class="mb-4">
+                    <h5 class="fw-bold">Instructor Decision: 
+                        <span class="badge bg-{{ $submission->instructor_competency_status === 'competent' ? 'success' : 'danger' }} fs-5">
+                            {{ $submission->instructor_competency_status === 'competent' ? 'Competent (C)' : 'Not Yet Competent (NYC)' }}
+                        </span>
+                    </h5>
+                    <p class="text-muted small">Review the student's submission and the instructor's feedback on the left, then verify the decision.</p>
+                </div>
+
+                <form action="{{ route('assessor.grading.verify', $submission) }}" method="POST">
                     @csrf
 
-                    {{-- NVQ Competency Status (primary decision) --}}
                     <div class="mb-4">
-                        <label class="form-label fw-bold fs-5">Competency Decision <span class="text-danger">*</span></label>
+                        <label class="form-label fw-bold fs-5">Audit Action <span class="text-danger">*</span></label>
                         <div class="row g-3">
                             <div class="col-6">
-                                <input type="radio" class="btn-check" name="competency_status" id="competent"
-                                       value="competent" required
-                                       {{ old('competency_status', $submission->result?->competency_status) === 'competent' ? 'checked' : '' }}>
-                                <label class="btn btn-outline-success w-100 py-4" for="competent">
-                                    <div class="fw-bold fs-2">C</div>
-                                    <div class="small">Competent</div>
+                                <input type="radio" class="btn-check" name="action" id="action_verify"
+                                       value="verify" required {{ old('action', $submission->status === 'assessor_verified' ? 'verify' : '') === 'verify' ? 'checked' : '' }}>
+                                <label class="btn btn-outline-success w-100 py-3" for="action_verify">
+                                    <i class="bi bi-check-circle fs-3 d-block mb-1"></i>
+                                    Verify & Endorse
                                 </label>
                             </div>
                             <div class="col-6">
-                                <input type="radio" class="btn-check" name="competency_status" id="not_yet_competent"
-                                       value="not_yet_competent" required
-                                       {{ old('competency_status', $submission->result?->competency_status) === 'not_yet_competent' ? 'checked' : '' }}>
-                                <label class="btn btn-outline-danger w-100 py-4" for="not_yet_competent">
-                                    <div class="fw-bold fs-2">NYC</div>
-                                    <div class="small">Not Yet Competent</div>
+                                <input type="radio" class="btn-check" name="action" id="action_reject"
+                                       value="reject" required {{ old('action', $submission->status === 'assessor_rejected' ? 'reject' : '') === 'reject' ? 'checked' : '' }}>
+                                <label class="btn btn-outline-danger w-100 py-3" for="action_reject">
+                                    <i class="bi bi-x-circle fs-3 d-block mb-1"></i>
+                                    Reject Assessment
                                 </label>
                             </div>
                         </div>
-                        @error('competency_status')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
 
-                    {{-- Optional Marks --}}
-                    @if($submission->assignment->max_marks)
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Marks (Optional)</label>
-                        <div class="input-group">
-                            <input type="number" name="marks" class="form-control"
-                                   value="{{ old('marks', $submission->result?->marks) }}"
-                                   min="0" max="{{ $submission->assignment->max_marks }}">
-                            <span class="input-group-text">/ {{ $submission->assignment->max_marks }}</span>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- Feedback --}}
+                    {{-- Verification Note --}}
                     <div class="mb-4">
-                        <label class="form-label fw-semibold">Feedback / Comments</label>
-                        <textarea name="feedback" class="form-control" rows="5"
-                                  placeholder="Provide constructive feedback to the student...">{{ old('feedback', $submission->result?->feedback) }}</textarea>
-                        <div class="form-text">This feedback will be visible to the student.</div>
+                        <label class="form-label fw-semibold">Verification Note (Optional)</label>
+                        <textarea name="note" class="form-control" rows="4"
+                                  placeholder="Add an internal note for TVEC auditing purposes...">{{ old('note', $submission->assessor_verification_note) }}</textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100">
-                        <i class="bi bi-check-circle me-2"></i>Save Assessment
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-shield-lock me-2"></i>Submit Verification
                     </button>
                 </form>
             </div>

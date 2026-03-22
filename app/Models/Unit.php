@@ -13,6 +13,11 @@ class Unit extends Model
         'module_id',
         'title',
         'description',
+        'nvq_unit_code',
+        'learning_outcomes',
+        'performance_criteria',
+        'assessment_criteria',
+        'nvq_level',
         'order',
         'is_active',
     ];
@@ -47,5 +52,11 @@ class Unit extends Model
     public function quizzes()
     {
         return $this->hasMany(Quiz::class);
+    }
+
+    /** NVQ Competency Assessments for this unit */
+    public function competencyAssessments()
+    {
+        return $this->hasMany(CompetencyAssessment::class);
     }
 }

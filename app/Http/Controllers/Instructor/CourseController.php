@@ -38,7 +38,12 @@ class CourseController extends Controller
      */
     public function create()
     {
-        abort_unless(Auth::user()->isAdmin(), 403, 'Only administrators can create courses.');
+        // Instructors and admins can both create courses (always saved as draft)
+        abort_unless(
+            Auth::user()->isAdmin() || Auth::user()->isInstructor(),
+            403,
+            'Only instructors or administrators can create courses.'
+        );
 
         return view('instructor.courses.create');
     }
@@ -48,7 +53,12 @@ class CourseController extends Controller
      */
     public function store(CourseRequest $request)
     {
-        abort_unless(Auth::user()->isAdmin(), 403, 'Only administrators can create courses.');
+        // Instructors and admins can both create courses (always saved as draft)
+        abort_unless(
+            Auth::user()->isAdmin() || Auth::user()->isInstructor(),
+            403,
+            'Only instructors or administrators can create courses.'
+        );
 
         $data = $request->validated();
         $data['instructor_id'] = Auth::id();

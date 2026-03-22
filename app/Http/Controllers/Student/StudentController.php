@@ -62,9 +62,14 @@ class StudentController extends Controller
     {
         $this->authorizeEnrollment($course);
 
-        $course->load(['modules.units.lessons' => function ($q) {
-            $q->where('is_active', true)->orderBy('order');
-        }]);
+        $course->load([
+            'modules.units.lessons' => function ($q) {
+                $q->where('is_active', true)->orderBy('order');
+            },
+            'modules.units.competencyAssessments' => function ($q) {
+                $q->where('user_id', Auth::id());
+            }
+        ]);
 
         $user = Auth::user();
 

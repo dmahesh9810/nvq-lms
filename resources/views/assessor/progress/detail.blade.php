@@ -15,7 +15,10 @@
                 </ol>
             </nav>
         </div>
-        <a href="{{ route('assessor.progress.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to Progress</a>
+        <div>
+            <a href="{{ route('assessor.competency.index', [$student, $course]) }}" class="btn btn-primary btn-sm me-2 shadow-sm"><i class="bi bi-award me-1"></i>Assess Competency</a>
+            <a href="{{ route('assessor.progress.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to Progress</a>
+        </div>
     </div>
 </div>
 

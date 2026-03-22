@@ -80,7 +80,7 @@
     <div class="card-body">
         <h6 class="fw-semibold mb-2">Your Submission</h6>
         <p class="mb-1">
-            <span class="badge bg-info text-dark">{{ ucfirst($submission->status) }}</span>
+            <span class="badge bg-info text-dark">{{ ucwords(str_replace('_', ' ', $submission->status)) }}</span>
             · Submitted {{ $submission->submitted_at->format('d M Y H:i') }}
         </p>
         <a href="{{ Storage::url($submission->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
@@ -91,7 +91,7 @@
 @endif
 
 {{-- Upload Form --}}
-@if(!$submission || $submission->status !== 'graded')
+@if(!$submission || !$submission->isAssessorActioned())
 <div class="card shadow-sm border-0">
     <div class="card-header fw-semibold bg-light">
         {{ $submission ? '📤 Re-submit Assignment' : '📤 Submit Assignment' }}
@@ -114,7 +114,7 @@
 </div>
 @else
 <div class="alert alert-secondary">
-    <i class="bi bi-lock me-2"></i>This assignment has been graded and can no longer be resubmitted.
+    <i class="bi bi-lock me-2"></i>This assignment has been verified by an assessor and can no longer be resubmitted.
 </div>
 @endif
 

@@ -11,18 +11,20 @@ class AssignmentSubmission extends Model
 
     public const STATUS_SUBMITTED = 'submitted';
     public const STATUS_RESUBMITTED = 'resubmitted';
-    public const STATUS_REVIEWED = 'reviewed';
-    public const STATUS_ASSESSED = 'assessed';
+    public const STATUS_INSTRUCTOR_ASSESSED = 'instructor_assessed';
+    public const STATUS_ASSESSOR_VERIFIED = 'assessor_verified';
+    public const STATUS_ASSESSOR_REJECTED = 'assessor_rejected';
 
     protected $fillable = [
         'assignment_id', 'user_id', 'file_path', 'submitted_at', 'status',
-        'instructor_id', 'instructor_review', 'instructor_reviewed_at',
-        'assessor_id',
+        'instructor_id', 'instructor_review', 'instructor_reviewed_at', 'instructor_competency_status',
+        'assessor_id', 'assessor_verification_note', 'verified_at'
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
         'instructor_reviewed_at' => 'datetime',
+        'verified_at' => 'datetime',
     ];
 
     /** The assignment this submission belongs to */
@@ -43,14 +45,14 @@ class AssignmentSubmission extends Model
         return $this->hasOne(AssignmentResult::class, 'submission_id');
     }
 
-    public function isAssessed(): bool
+    public function isAssessorActioned(): bool
     {
-        return $this->result()->exists() && $this->status === self::STATUS_ASSESSED;
+        return in_array($this->status, [self::STATUS_ASSESSOR_VERIFIED, self::STATUS_ASSESSOR_REJECTED]);
     }
 
-    public function isReviewed(): bool
+    public function isInstructorAssessed(): bool
     {
-        return $this->status === self::STATUS_REVIEWED;
+        return $this->status === self::STATUS_INSTRUCTOR_ASSESSED;
     }
 
     /** The instructor who reviewed the assignment */

@@ -17,23 +17,25 @@ class GradingController extends Controller
      */
     public function index()
     {
-        // All submissions not yet graded (reviewed by instructor)
-        $pending = AssignmentSubmission::where('status', AssignmentSubmission::STATUS_REVIEWED)
+        // All submissions not yet verified (assessed by instructor)
+        $pending = AssignmentSubmission::where('status', AssignmentSubmission::STATUS_INSTRUCTOR_ASSESSED)
             ->with(['assignment.unit.module.course', 'student', 'result'])
             ->latest()
             ->paginate(20);
 
-        // Recently graded by this assessor
-        $recentlyGraded = AssignmentResult::with([
-            'submission.assignment.unit.module.course',
-            'submission.student',
+        // Recently verified by this assessor
+        $recentlyGraded = \App\Models\AssignmentSubmission::with([
+            'assignment.unit.module.course',
+            'student',
+            'result'
         ])
             ->where('assessor_id', Auth::id())
-            ->latest('graded_at')
+            ->whereNotNull('verified_at')
+            ->latest('verified_at')
             ->take(10)
             ->get();
 
-        $pendingCount = AssignmentSubmission::where('status', AssignmentSubmission::STATUS_REVIEWED)->count();
+        $pendingCount = AssignmentSubmission::where('status', AssignmentSubmission::STATUS_INSTRUCTOR_ASSESSED)->count();
 
         return view('assessor.grading.index', compact('pending', 'recentlyGraded', 'pendingCount'));
     }
@@ -48,59 +50,61 @@ class GradingController extends Controller
         return view('assessor.grading.show', compact('submission'));
     }
 
-    /**
-     * Save the competency grade (C / NYC) and any feedback.
-     * After saving, triggers the course completion check to auto-award certificates.
-     */
-    public function grade(Request $request, AssignmentSubmission $submission)
+    public function verify(Request $request, AssignmentSubmission $submission)
     {
-        if (!$submission->isReviewed()) {
-            return back()->with('error', 'This submission has not been reviewed by an instructor yet.');
+        if (!$submission->isInstructorAssessed()) {
+            return back()->with('error', 'This submission has not been evaluated by an instructor yet.');
         }
 
-        if ($submission->isAssessed()) {
-            return back()->with('error', 'This submission has already been assessed.');
+        if ($submission->isAssessorActioned()) {
+            return back()->with('error', 'This submission has already been verified.');
         }
 
         $data = $request->validate([
-            'competency_status' => 'required|in:competent,not_yet_competent',
-            'marks' => 'nullable|integer|min:0',
-            'feedback' => 'nullable|string|max:2000',
+            'action' => 'required|in:verify,reject',
+            'note' => 'nullable|string|max:2000',
         ]);
 
-        // Use DB Transaction to ensure both result and submission status are updated atomically
         DB::transaction(function () use ($submission, $data) {
-            AssignmentResult::updateOrCreate(
-                ['submission_id' => $submission->id],
-                [
-                    'assessor_id' => Auth::id(),
-                    'competency_status' => $data['competency_status'],
-                    'marks' => $data['marks'] ?? null,
-                    'feedback' => $data['feedback'] ?? null,
-                    'graded_at' => now(),
-                ]
-            );
+            $newStatus = $data['action'] === 'verify' 
+                ? AssignmentSubmission::STATUS_ASSESSOR_VERIFIED 
+                : AssignmentSubmission::STATUS_ASSESSOR_REJECTED;
 
-            // Mark the submission as assessed and log the assessor ID
+            if ($data['action'] === 'verify') {
+                AssignmentResult::updateOrCreate(
+                    ['submission_id' => $submission->id],
+                    [
+                        'assessor_id' => Auth::id(),
+                        'competency_status' => $submission->instructor_competency_status,
+                        'feedback' => 'Verified by Assessor',
+                        'graded_at' => now(),
+                    ]
+                );
+            }
+
             $submission->update([
-                'status' => AssignmentSubmission::STATUS_ASSESSED,
+                'status' => $newStatus,
                 'assessor_id' => Auth::id(),
+                'assessor_verification_note' => $data['note'] ?? null,
+                'verified_at' => now(),
+            ]);
+
+            \App\Models\VerificationLog::create([
+                'assessor_id' => Auth::id(),
+                'instructor_id' => $submission->instructor_id,
+                'submission_id' => $submission->id,
+                'action' => $data['action'],
+                'note' => $data['note'] ?? null,
             ]);
         });
 
-        // ── Phase 4: Auto-award certificate if student is now fully competent ──
-        // Using centralized CertificateService for unified eligibility rules
-        $course = $submission->assignment->unit->module->course;
-        $student = $submission->student;
-
-        app(\App\Services\CertificateService::class)->checkAndIssueCertificate($student, $course);
-
-        $message = 'Submission graded successfully.';
-        if ($data['competency_status'] === 'competent') {
-            $message .= ' Competency check triggered.';
+        // Auto-award certificate if verified and competent
+        if ($data['action'] === 'verify' && $submission->instructor_competency_status === 'competent') {
+            $course = $submission->assignment->unit->module->course;
+            app(\App\Services\CertificateService::class)->checkAndIssueCertificate($submission->student, $course);
         }
 
-        return redirect()->route('assessor.grading.index')
-            ->with('success', $message);
+        $msg = $data['action'] === 'verify' ? 'Submission successfully verified.' : 'Submission rejected.';
+        return redirect()->route('assessor.grading.index')->with('success', $msg);
     }
 }

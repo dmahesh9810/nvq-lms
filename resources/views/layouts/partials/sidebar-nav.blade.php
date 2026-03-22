@@ -41,6 +41,9 @@
         <a href="{{ route('admin.certificates.index') }}" class="nav-link {{ request()->routeIs('admin.certificates.*') ? 'active' : '' }}">
             <i class="bi bi-award-fill"></i> Certificates
         </a>
+        <a href="{{ route('admin.audits.index') }}" class="nav-link {{ request()->routeIs('admin.audits.*') ? 'active' : '' }}">
+            <i class="bi bi-shield-check"></i> Audit Logs
+        </a>
     @endif
 
     {{-- ── Instructor Links ── --}}

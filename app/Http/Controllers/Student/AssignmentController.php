@@ -59,9 +59,9 @@ class AssignmentController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
-        // Block re-submission if already assessed
-        if ($existing && $existing->isAssessed()) {
-            return back()->with('error', 'This assignment has already been assessed and cannot be resubmitted.');
+        // 3. Prevent resubmission if already audited by an Assessor
+        if ($existing && $existing->isAssessorActioned()) {
+            return back()->with('error', 'You cannot resubmit. This assignment has already been verified by an assessor.');
         }
 
         // Store the file on the public disk

@@ -85,9 +85,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::patch('/{certificate}/revoke', [AdminCertificateController::class , 'revoke'])->name('revoke');
                     Route::patch('/{certificate}/reinstate', [AdminCertificateController::class , 'reinstate'])->name('reinstate');
                 }
-                );
-            }
             );
+
+            // Phase 4: TVEC Verification Logs
+            Route::get('/audits', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audits.index');
+        });
 
             // ── Instructor Routes ─────────────────────────────────────────────────
             Route::middleware('role:admin,instructor')
@@ -186,11 +188,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 }
             );
 
+            // Phase 2: Competency Assessment
+            Route::prefix('competency')->name('competency.')->group(function () {
+                Route::get('/student/{student}/course/{course}', [\App\Http\Controllers\Assessor\CompetencyController::class, 'index'])->name('index');
+                Route::post('/student/{student}/unit/{unit}', [\App\Http\Controllers\Assessor\CompetencyController::class, 'update'])->name('update');
+            });
+
             // Phase 3: Grading
             Route::prefix('grading')->name('grading.')->group(function () {
                     Route::get('/', [GradingController::class , 'index'])->name('index');
                     Route::get('/{submission}', [GradingController::class , 'show'])->name('show');
-                    Route::post('/{submission}/grade', [GradingController::class , 'grade'])->name('grade');
+                    Route::post('/{submission}/verify', [GradingController::class , 'verify'])->name('verify');
                 }
                 );
             }

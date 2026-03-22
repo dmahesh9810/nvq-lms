@@ -610,6 +610,40 @@
                         <label class="form-label fw-semibold">Description</label>
                         <textarea name="payload[description]" class="form-control" rows="2">{{ $unit->description }}</textarea>
                     </div>
+
+                    <hr class="my-3 text-muted opacity-25">
+                    <h6 class="fw-bold text-primary small"><i class="bi bi-award me-1"></i>NVQ Data</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-2">
+                            <label class="form-label fw-semibold small">NVQ Unit Code</label>
+                            <input type="text" name="payload[nvq_unit_code]" class="form-control form-control-sm" value="{{ $unit->nvq_unit_code }}">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label fw-semibold small">NVQ Level</label>
+                            <select name="payload[nvq_level]" class="form-select form-select-sm">
+                                @for($i=1; $i<=7; $i++)
+                                    <option value="{{ $i }}" {{ ($unit->nvq_level ?? 4) == $i ? 'selected' : '' }}>Lvl {{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold small">Learning Outcomes</label>
+                        <textarea name="payload[learning_outcomes]" rows="2" class="form-control form-control-sm">{{ $unit->learning_outcomes }}</textarea>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold small">Performance Criteria</label>
+                        <textarea name="payload[performance_criteria]" rows="2" class="form-control form-control-sm">{{ $unit->performance_criteria }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Assessment Criteria</label>
+                        <textarea name="payload[assessment_criteria]" rows="2" class="form-control form-control-sm">{{ $unit->assessment_criteria }}</textarea>
+                    </div>
+                    <hr class="my-3 text-muted opacity-25">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="payload[is_active]" value="1" {{ $unit->is_active ? 'checked' : '' }}>
                         <label class="form-check-label">Active</label>
