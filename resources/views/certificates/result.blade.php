@@ -1,102 +1,119 @@
 <x-guest-layout>
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-8">
-                    
-                    <div class="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
-                        <h2 class="text-2xl font-bold text-gray-800">Verification Result</h2>
-                        <a href="{{ route('verify.form') }}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                            &larr; Search Again
+    <div class="d-flex flex-column align-items-center w-100">
+        {{-- Brand Header / Banner --}}
+        <div class="text-center mb-4">
+            <h1 class="fw-bolder text-dark mb-1">Certificate Verification</h1>
+            <p class="text-muted">IqBrave NVQ & TVEC Management System</p>
+        </div>
+
+        {{-- Main Card --}}
+        <div class="card shadow-lg border-0 rounded-4 w-100" style="max-width: 700px;">
+            <div class="card-body p-4 p-md-5">
+                
+                @if(!$certificate)
+                    {{-- Not Found Status --}}
+                    <div class="text-center py-4">
+                        <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-danger bg-opacity-10 mb-4" style="width: 80px; height: 80px;">
+                            <i class="bi bi-x-circle text-danger" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h2 class="h3 fw-bold text-dark mb-3">Invalid Certificate</h2>
+                        <p class="text-muted fs-5 mb-5">
+                            The tracking number provided does not match any official records in our system. Ensure the number is typed correctly.
+                        </p>
+                        <a href="{{ route('verify.form') }}" class="btn btn-primary btn-lg px-5 shadow-sm rounded-3">
+                            Verify Another Certificate
                         </a>
                     </div>
-
-                    @if(!$certificate)
-                        <div class="rounded-md bg-red-50 p-6 text-center border border-red-200">
-                            <div class="flex justify-center mb-4">
-                                <svg class="h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
+                @else
+                    
+                    {{-- Found Status --}}
+                    @if($certificate->status === 'revoked')
+                        <div class="text-center border-bottom pb-4 mb-4">
+                            <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-danger bg-opacity-10 mb-3 border border-danger-subtle" style="width: 80px; height: 80px;">
+                                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 2.5rem;"></i>
                             </div>
-                            <h3 class="text-xl font-medium text-red-800 mb-2">Certificate Not Found</h3>
-                            <p class="text-red-600 text-sm">
-                                The tracking number provided does not match any records in our system. Please check the number and try again.
-                            </p>
+                            <h2 class="h3 fw-bold text-danger">Revoked Certificate</h2>
+                            <p class="text-danger-emphasis mb-0 fs-5">This certificate exists but has been invalidated by administration.</p>
                         </div>
                     @else
-                        
-                        @if($certificate->status === 'revoked')
-                            <div class="rounded-md bg-yellow-50 p-4 mb-6 border border-yellow-200 flex items-start">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-yellow-800">Status Alert</h3>
-                                    <div class="mt-2 text-sm text-yellow-700">
-                                        <p>This certificate exists in the system but has been marked as <strong>REVOKED</strong> by administration. Tests indicating authenticity for current usage may be void.</p>
-                                    </div>
-                                </div>
+                        <div class="text-center border-bottom pb-4 mb-4">
+                            <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-success bg-opacity-10 mb-3 border border-success-subtle shadow-sm" style="width: 90px; height: 90px;">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
                             </div>
-                        @else
-                            <div class="rounded-md bg-green-50 p-4 mb-6 border border-green-200 flex items-start">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-green-800">Authentic Certificate</h3>
-                                    <div class="mt-2 text-sm text-green-700">
-                                        <p>This is a valid, officially issued certificate registered in the {{ config('app.name') }}.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-                        <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                            <dl class="divide-y divide-gray-200">
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-                                    <dt class="text-sm font-medium text-gray-500">Tracking Number</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 font-mono font-bold tracking-wider">{{ $certificate->certificate_number }}</dd>
-                                </div>
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-                                    <dt class="text-sm font-medium text-gray-500">Recipient Name</dt>
-                                    <dd class="mt-1 text-lg font-semibold text-gray-900 sm:col-span-2 sm:mt-0">{{ $certificate->user->name }}</dd>
-                                </div>
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-                                    <dt class="text-sm font-medium text-gray-500">Certification Target</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $certificate->course->title }}</dd>
-                                </div>
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-                                    <dt class="text-sm font-medium text-gray-500">Date of Issue</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $certificate->issued_at->format('F j, Y') }}</dd>
-                                </div>
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-                                    <dt class="text-sm font-medium text-gray-500">Current Status</dt>
-                                    <dd class="mt-1 text-sm sm:col-span-2 sm:mt-0">
-                                        @if($certificate->status === 'active')
-                                            <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                                Active / Valid
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                                                Revoked
-                                            </span>
-                                        @endif
-                                    </dd>
-                                </div>
-                            </dl>
+                            <h2 class="h2 fw-bolder text-success">Authentic Certificate</h2>
+                            <p class="text-muted mb-0 fs-5">Valid and officially recognized credential.</p>
                         </div>
                     @endif
 
-                </div>
+                    {{-- Details Grid --}}
+                    <div class="bg-light rounded-4 p-4 p-md-5 border mb-5">
+                        <div class="row g-4">
+                            
+                            <div class="col-12">
+                                <span class="d-block text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">Recipient Name</span>
+                                <h4 class="fw-bold text-dark border-bottom pb-2 mt-1 mb-0">{{ $certificate->user->name }}</h4>
+                            </div>
+
+                            <div class="col-12">
+                                <span class="d-block text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">Certification Program</span>
+                                <span class="d-block fs-5 text-dark mt-1">{{ $certificate->course->title }}</span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <span class="d-block text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">NVQ Level</span>
+                                <div class="mt-1">
+                                    @if($certificate->nvq_level)
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-3 py-2 fs-6">
+                                            Level {{ $certificate->nvq_level }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted fst-italic">Not Specified</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <span class="d-block text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">Tracking ID</span>
+                                <span class="d-inline-block mt-1 bg-white border rounded px-2 py-1 font-monospace fw-bold text-dark">{{ $certificate->certificate_number }}</span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <span class="d-block text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">Date of Issue</span>
+                                <span class="d-flex align-items-center mt-1 text-dark fw-medium">
+                                    <i class="bi bi-calendar3 text-muted me-2"></i>
+                                    {{ $certificate->issued_at->format('F j, Y') }}
+                                </span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <span class="d-block text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">Evaluating Assessor</span>
+                                <span class="d-block mt-1 text-dark fw-medium">{{ $certificate->assessor->name ?? 'System Automated' }}</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {{-- Action Area --}}
+                    <div class="text-center">
+                        <a href="{{ route('verify.form') }}" class="btn btn-dark btn-lg px-5 py-3 shadow-sm rounded-3">
+                            <i class="bi bi-arrow-repeat me-2"></i>Verify Another Certificate
+                        </a>
+                    </div>
+                @endif
+
             </div>
             
-            <div class="text-center text-sm text-gray-400">
-                <p>{{ config('app.name') }} &copy; {{ date('Y') }}</p>
+            {{-- Card Footer Trust Element --}}
+            <div class="card-footer bg-light border-top p-3 px-md-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <div class="d-flex align-items-center text-success fw-medium small mb-2 mb-md-0">
+                    <i class="bi bi-shield-check me-2 fs-5"></i>
+                    <span>Verified by IqBrave NVQ Security System</span>
+                </div>
+                <div class="text-muted font-monospace" style="font-size: 0.75rem;">
+                    Timestamp: {{ now()->format('Y-m-d H:i:s T') }}
+                </div>
             </div>
         </div>
+        
     </div>
 </x-guest-layout>

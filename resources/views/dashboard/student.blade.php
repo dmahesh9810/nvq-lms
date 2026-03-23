@@ -78,11 +78,39 @@
                                         </div>
                                         <div class="col-md-5">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <span class="small fw-semibold {{ $progress == 100 ? 'text-success' : 'text-primary' }}">{{ $progress }}% Completed</span>
+                                                <span class="small fw-semibold {{ $progress == 100 ? 'text-success' : 'text-primary' }}">Lessons: {{ $progress }}% Completed</span>
                                             </div>
-                                            <div class="progress" style="height: 6px;">
+                                            <div class="progress mb-3" style="height: 6px;">
                                                 <div class="progress-bar {{ $progress == 100 ? 'bg-success' : 'bg-primary' }}" role="progressbar" style="width: {{ $progress }}%" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
+                                            
+                                            @php 
+                                                $comp = $courseCompetency[$course->id] ?? null; 
+                                                $compColor = 'secondary';
+                                                
+                                                if($comp && $comp['total'] > 0) {
+                                                    if ($comp['status'] === 'all') $compColor = 'success';
+                                                    elseif ($comp['status'] === 'partial') $compColor = 'warning text-dark';
+                                                    else $compColor = 'danger';
+                                                }
+                                            @endphp
+                                            @if($comp && $comp['total'] > 0)
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="small fw-semibold text-{{ str_replace(' text-dark', '', $compColor) }}">NVQ Competency: {{ $comp['percentage'] }}%</span>
+                                                <span class="badge bg-{{ $compColor }} rounded-pill" style="font-size:0.6rem;">
+                                                    @if($comp['status'] === 'all')
+                                                        <i class="bi bi-check-circle me-1"></i>All Competent
+                                                    @elseif($comp['status'] === 'partial')
+                                                        Partially Competent
+                                                    @else
+                                                        Not Competent
+                                                    @endif
+                                                </span>
+                                            </div>
+                                            <div class="progress" style="height: 4px;">
+                                                <div class="progress-bar bg-{{ str_replace(' text-dark', '', $compColor) }}" role="progressbar" style="width: {{ $comp['percentage'] }}%"></div>
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

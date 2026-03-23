@@ -32,15 +32,23 @@ class QuizController extends Controller
     public function create()
     {
         $userId = Auth::id();
-        $units = Unit::whereHas('module.course', function ($q) use ($userId) {
-            $q->where('instructor_id', $userId)
-              ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
-                  $q2->where('users.id', $userId);
-              })
-              ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
-                  $q3->where('users.id', $userId);
-              });
-        })->with('module.course')->get();
+        $unitsQuery = Unit::with('module.course');
+        
+        if (!Auth::user()->isAdmin()) {
+            $unitsQuery->whereHas('module.course', function ($q) use ($userId) {
+                $q->where(function($query) use ($userId) {
+                    $query->where('instructor_id', $userId)
+                          ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
+                              $q2->where('users.id', $userId);
+                          })
+                          ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
+                              $q3->where('users.id', $userId);
+                          });
+                });
+            });
+        }
+        
+        $units = $unitsQuery->get();
 
         return view('instructor.quizzes.create', compact('units'));
     }
@@ -71,15 +79,23 @@ class QuizController extends Controller
     {
         $this->authorizeQuiz($quiz);
         $userId = Auth::id();
-        $units = Unit::whereHas('module.course', function ($q) use ($userId) {
-            $q->where('instructor_id', $userId)
-              ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
-                  $q2->where('users.id', $userId);
-              })
-              ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
-                  $q3->where('users.id', $userId);
-              });
-        })->with('module.course')->get();
+        $unitsQuery = Unit::with('module.course');
+        
+        if (!Auth::user()->isAdmin()) {
+            $unitsQuery->whereHas('module.course', function ($q) use ($userId) {
+                $q->where(function($query) use ($userId) {
+                    $query->where('instructor_id', $userId)
+                          ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
+                              $q2->where('users.id', $userId);
+                          })
+                          ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
+                              $q3->where('users.id', $userId);
+                          });
+                });
+            });
+        }
+        
+        $units = $unitsQuery->get();
 
         return view('instructor.quizzes.edit', compact('quiz', 'units'));
     }

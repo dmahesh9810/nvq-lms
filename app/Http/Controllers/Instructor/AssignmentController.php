@@ -33,15 +33,23 @@ class AssignmentController extends Controller
     public function create()
     {
         $userId = Auth::id();
-        $units = Unit::whereHas('module.course', function ($q) use ($userId) {
-            $q->where('instructor_id', $userId)
-              ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
-                  $q2->where('users.id', $userId);
-              })
-              ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
-                  $q3->where('users.id', $userId);
-              });
-        })->with('module.course')->get();
+        $unitsQuery = Unit::with('module.course');
+        
+        if (!Auth::user()->isAdmin()) {
+            $unitsQuery->whereHas('module.course', function ($q) use ($userId) {
+                $q->where(function($query) use ($userId) {
+                    $query->where('instructor_id', $userId)
+                          ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
+                              $q2->where('users.id', $userId);
+                          })
+                          ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
+                              $q3->where('users.id', $userId);
+                          });
+                });
+            });
+        }
+        
+        $units = $unitsQuery->get();
 
         return view('instructor.assignments.create', compact('units'));
     }
@@ -73,15 +81,23 @@ class AssignmentController extends Controller
     {
         $this->authorizeAssignment($assignment);
         $userId = Auth::id();
-        $units = Unit::whereHas('module.course', function ($q) use ($userId) {
-            $q->where('instructor_id', $userId)
-              ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
-                  $q2->where('users.id', $userId);
-              })
-              ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
-                  $q3->where('users.id', $userId);
-              });
-        })->with('module.course')->get();
+        $unitsQuery = Unit::with('module.course');
+        
+        if (!Auth::user()->isAdmin()) {
+            $unitsQuery->whereHas('module.course', function ($q) use ($userId) {
+                $q->where(function($query) use ($userId) {
+                    $query->where('instructor_id', $userId)
+                          ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
+                              $q2->where('users.id', $userId);
+                          })
+                          ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
+                              $q3->where('users.id', $userId);
+                          });
+                });
+            });
+        }
+        
+        $units = $unitsQuery->get();
 
         return view('instructor.assignments.edit', compact('assignment', 'units'));
     }

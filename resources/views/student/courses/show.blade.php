@@ -51,23 +51,23 @@
                         <div class="unit-title d-flex align-items-center justify-content-between mb-2">
                             <span>{{ $unit->title }}</span>
                             @php
-                                $competencyCode = $unit->nvq_unit_code ? '<span class="badge bg-secondary me-1" style="font-size: 0.6rem;">'.$unit->nvq_unit_code.'</span>' : '';
+                                $competencyCode = $unit->nvq_unit_code ? '<span class="badge bg-light text-secondary border me-1" style="font-size: 0.6rem;">'.$unit->nvq_unit_code.'</span>' : '';
                                 $competency = $unit->competencyAssessments->first();
                                 $status = $competency ? $competency->status : 'not_assessed';
                                 $badgeClass = match($status) {
-                                    'competent' => 'bg-success',
-                                    'not_competent' => 'bg-danger',
-                                    default => 'bg-warning text-dark'
+                                    'competent' => 'bg-soft-green text-success border border-success border-opacity-25',
+                                    'not_competent' => 'bg-soft-red text-danger border border-danger border-opacity-25',
+                                    default => 'bg-light text-warning border border-warning border-opacity-25'
                                 };
                                 $badgeLabel = match($status) {
-                                    'competent' => '<i class="bi bi-check-circle me-1"></i>Competent',
-                                    'not_competent' => '<i class="bi bi-x-circle me-1"></i>NYC',
-                                    default => '<i class="bi bi-dash-circle me-1"></i>Pending'
+                                    'competent' => '<i class="bi bi-check-circle-fill me-1"></i>Competent',
+                                    'not_competent' => '<i class="bi bi-x-circle-fill me-1"></i>NYC',
+                                    default => '<i class="bi bi-hourglass-split me-1"></i>Pending'
                                 };
                             @endphp
                             <div>
                                 {!! $competencyCode !!}
-                                <span class="badge {{ $badgeClass }} rounded-pill" style="font-size: 0.6rem;">{!! $badgeLabel !!}</span>
+                                <span class="badge {{ $badgeClass }} rounded-pill" style="font-size: 0.65rem; font-weight: 600;">{!! $badgeLabel !!}</span>
                             </div>
                         </div>
                         @foreach ($unit->lessons as $lesson)

@@ -1,23 +1,34 @@
 <x-guest-layout>
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
-                <div class="p-8 text-gray-900 text-center">
-                    
-                    <div class="flex justify-center mb-6">
-                        <svg class="w-16 h-16 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                        </svg>
-                    </div>
+    <div class="d-flex flex-column align-items-center w-100 py-4 py-md-5">
+        
+        {{-- Brand Header / Banner --}}
+        <div class="text-center mb-4">
+            <h1 class="fw-bolder text-dark mb-1">Certificate Verification</h1>
+            <p class="text-muted">IqBrave NVQ & TVEC Management System</p>
+        </div>
 
-                    <h2 class="text-3xl font-extrabold text-blue-900 mb-2">Verify Certificate</h2>
-                    <p class="text-gray-500 mb-8">Enter the unique tracking number found at the bottom of the certificate.</p>
+        {{-- Main Card --}}
+        <div class="card shadow-lg border-0 rounded-4 w-100" style="max-width: 600px;">
+            <div class="card-body p-4 p-md-5 text-center">
+                
+                <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-primary bg-opacity-10 mb-4 border border-primary-subtle shadow-sm" style="width: 80px; height: 80px;">
+                    <i class="bi bi-shield-lock text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+
+                <h2 class="h3 fw-bold text-dark mb-3">Verify Credential</h2>
+                <p class="text-muted fs-6 mb-5 px-md-4">
+                    Enter the unique tracking ID found at the bottom of the certificate to instantly verify its authenticity and accreditation status.
+                </p>
+                
+                <form method="POST" action="{{ route('verify.submit') }}" class="w-100 px-md-3">
+                    @csrf
                     
-                    <form method="POST" action="{{ route('verify.submit') }}" class="max-w-md mx-auto space-y-6">
-                        @csrf
-                        
-                        <div>
-                            <label for="certificate_number" class="sr-only">Certificate Number</label>
+                    <div class="mb-4 text-start">
+                        <label for="certificate_number" class="form-label fw-bold text-dark mb-2" style="font-size: 0.9rem; letter-spacing: 0.5px;">TRACKING ID / CERTIFICATE NUMBER</label>
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-light border-end-0 text-muted">
+                                <i class="bi bi-upc-scan"></i>
+                            </span>
                             <input 
                                 type="text" 
                                 name="certificate_number" 
@@ -25,26 +36,35 @@
                                 required
                                 value="{{ old('certificate_number') }}"
                                 placeholder="e.g. IQB-2026-A1B2C3"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center text-lg py-3 uppercase tracking-wider"
+                                class="form-control border-start-0 text-dark font-monospace fw-bold py-3 fs-5"
+                                style="text-transform: uppercase;"
+                                autofocus
                             >
-                            @error('certificate_number')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
                         </div>
+                        @error('certificate_number')
+                            <div class="text-danger mt-2 small fw-medium text-start">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                            </div>
+                        @enderror
+                    </div>
 
-                        <div>
-                            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                                Verify Now
-                            </button>
-                        </div>
-                    </form>
+                    <div class="mt-5">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 shadow-sm rounded-3 fw-bold fs-5">
+                            <i class="bi bi-search me-2"></i> Verify Now
+                        </button>
+                    </div>
+                </form>
 
-                </div>
             </div>
             
-            <div class="text-center text-sm text-gray-400">
-                <p>{{ config('app.name') }} &copy; {{ date('Y') }}</p>
+            {{-- Card Footer Trust Element --}}
+            <div class="card-footer bg-light border-top p-3 text-center">
+                <div class="d-flex justify-content-center align-items-center text-muted fw-medium small">
+                    <i class="bi bi-lock-fill me-2"></i>
+                    <span>Secure 256-bit Encryption • Direct Database Verification</span>
+                </div>
             </div>
         </div>
+        
     </div>
 </x-guest-layout>

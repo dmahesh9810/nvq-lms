@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             AssignmentSeeder::class ,
             StudentDataSeeder::class ,
             WorkflowTestDataSeeder::class ,
+            NvqDemoSeeder::class,
         ]);
     }
 }

@@ -18,13 +18,52 @@ class StudentDashboardController extends Controller
         $user = Auth::user();
 
         // 1. Enrolled Courses with Progress
-        $courses = $user->courses()->with(['modules.units.lessons', 'modules.units.quizzes'])->get();
+        $courses = $user->courses()->with([
+            'modules.units.lessons', 
+            'modules.units.quizzes',
+            'modules.units.competencyAssessments' => function($q) use($user) {
+                $q->where('user_id', $user->id);
+            }
+        ])->get();
 
         $enrolledCourseIds = $courses->pluck('id');
 
         // Course Progress mapping
         $courseProgress = $courses->mapWithKeys(function ($course) use ($user) {
             return [$course->id => $course->progressForStudent($user->id)];
+        });
+
+        // Course Competency mapping
+        $courseCompetency = $courses->mapWithKeys(function ($course) {
+            $totalActiveUnits = 0;
+            $competentUnits = 0;
+            foreach ($course->modules as $module) {
+                if ($module->is_active) {
+                    foreach ($module->units as $unit) {
+                        if ($unit->is_active) {
+                            $totalActiveUnits++;
+                            $assessment = $unit->competencyAssessments->first();
+                            if ($assessment && $assessment->status === 'competent') {
+                                $competentUnits++;
+                            }
+                        }
+                    }
+                }
+            }
+            $pct = $totalActiveUnits > 0 ? round(($competentUnits / $totalActiveUnits) * 100) : 0;
+            
+            $status = 'none';
+            if ($totalActiveUnits > 0) {
+                if ($competentUnits === $totalActiveUnits) $status = 'all';
+                elseif ($competentUnits > 0) $status = 'partial';
+            }
+            
+            return [$course->id => [
+                'percentage' => $pct,
+                'status' => $status,
+                'competent' => $competentUnits,
+                'total' => $totalActiveUnits
+            ]];
         });
 
         // 2. Learning Progress Analytics
@@ -67,6 +106,7 @@ class StudentDashboardController extends Controller
         return view('dashboard.student', compact(
             'courses',
             'courseProgress',
+            'courseCompetency',
             'totalLessons',
             'totalLessonsCompleted',
             'totalQuizzes',
