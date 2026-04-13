@@ -38,7 +38,7 @@ class CertificateController extends Controller
         }
 
         $qr = base64_encode(
-            \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(120)->generate(
+            (string) \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(120)->generate(
                 route('certificate.verify', $certificate->certificate_number)
             )
         );

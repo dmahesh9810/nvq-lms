@@ -12,17 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            UserSeeder::class ,
-            AssessorSeeder::class ,
-            CourseSeeder::class ,
-            ModuleSeeder::class ,
-            UnitSeeder::class ,
-            LessonSeeder::class ,
-            QuizSeeder::class ,
-            AssignmentSeeder::class ,
-            StudentDataSeeder::class ,
-            WorkflowTestDataSeeder::class ,
-            NvqDemoSeeder::class,
+            NcsRealSystemSeeder::class,
         ]);
     }
 }

@@ -17,13 +17,15 @@ class AssignmentController extends Controller
     {
         $userId = Auth::id();
         $assignments = Assignment::whereHas('unit.module.course', function ($q) use ($userId) {
-            $q->where('instructor_id', $userId)
-              ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
-                  $q2->where('users.id', $userId);
-              })
-              ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
-                  $q3->where('users.id', $userId);
-              });
+            $q->where(function ($query) use ($userId) {
+                $query->where('instructor_id', $userId)
+                  ->orWhereHas('assignedInstructors', function ($q2) use ($userId) {
+                      $q2->where('users.id', $userId);
+                  })
+                  ->orWhereHas('modules.assignedInstructors', function ($q3) use ($userId) {
+                      $q3->where('users.id', $userId);
+                  });
+            });
         })->with('unit.module.course')->withCount('submissions')->latest()->paginate(15);
 
         return view('instructor.assignments.index', compact('assignments'));

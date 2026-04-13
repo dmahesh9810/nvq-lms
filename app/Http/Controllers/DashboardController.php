@@ -82,7 +82,7 @@ class DashboardController extends Controller
 
         // 4. Calculate total distinct students across all accessible courses
         $courseIds = $allCourses->pluck('id')->toArray();
-        $totalStudents = empty($courseIds) ? 0 : Enrollment::whereIn('course_id', $courseIds)->distinct('user_id')->count();
+        $totalStudents = empty($courseIds) ? 0 : Enrollment::whereIn('course_id', $courseIds)->distinct()->count('user_id');
 
         $stats = [
             'my_courses' => $allCourses->count(),
