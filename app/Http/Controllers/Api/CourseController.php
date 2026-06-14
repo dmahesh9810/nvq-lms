@@ -33,7 +33,7 @@ class CourseController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $course = Course::with(['modules.lessons.microTopics'])->findOrFail($id);
+        $course = Course::with(['modules.units.lessons', 'modules.units.quizzes', 'modules.units.assignments'])->findOrFail($id);
 
         return response()->json([
             'data' => $course

@@ -41,6 +41,12 @@ class Lesson extends Model
         return $this->hasMany(LessonProgress::class);
     }
 
+    /** Micro-topics (Concept Cards) for this lesson */
+    public function microTopics()
+    {
+        return $this->hasMany(MicroTopic::class);
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------

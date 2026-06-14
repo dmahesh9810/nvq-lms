@@ -23,6 +23,12 @@ class QuizQuestion extends Model
         return $this->hasMany(QuizOption::class, 'question_id');
     }
 
+    /** The micro topic this question maps to */
+    public function microTopic()
+    {
+        return $this->belongsTo(MicroTopic::class);
+    }
+
     /** The correct option */
     public function correctOption()
     {

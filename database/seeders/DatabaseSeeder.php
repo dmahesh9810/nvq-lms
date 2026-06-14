@@ -12,7 +12,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            NcsRealSystemSeeder::class,
+            SystemWipeSeeder::class,
+            M01ModuleSeeder::class,
+            TestUsersSeeder::class,
         ]);
     }
 }

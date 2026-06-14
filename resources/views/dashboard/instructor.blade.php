@@ -28,6 +28,22 @@
     </div>
 </div>
 
+{{-- ── STUDENT INTELLIGENCE BANNER ─────────────────────────────────────── --}}
+<div class="card mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;">
+    <div class="card-body d-flex justify-content-between align-items-center py-3 px-4">
+        <div>
+            <h5 class="mb-1 fw-bold text-white">🧠 Student Intelligence Dashboard</h5>
+            <p class="mb-0 text-white opacity-75 small">
+                See who is mastering the content, who is struggling, and who hasn't logged in — in real time.
+            </p>
+        </div>
+        <a href="{{ route('instructor.analytics.students') }}"
+           class="btn btn-light fw-bold text-indigo-700 shadow-sm px-4">
+            View Students →
+        </a>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center py-3 px-4">
         <h6 class="mb-0 fw-semibold"><i class="bi bi-book me-2 text-primary"></i>My Recent Courses</h6>

@@ -5,8 +5,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class MicroTopic extends Model
 {
-    protected $fillable = ["lesson_id", "topic_name", "description"];
+    protected $fillable = ["lesson_id", "topic_name", "description", "concept_cards", "key_takeaway", "estimated_minutes"];
     
+    protected $casts = [
+        'concept_cards' => 'array',
+        'is_practical'  => 'boolean',
+    ];
+
     public function lesson() { 
         return $this->belongsTo(Lesson::class); 
     }

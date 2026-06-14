@@ -1,8 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Instructor Analytics Dashboard') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Instructor Analytics Dashboard') }}
+            </h2>
+            <a href="{{ route('instructor.analytics.students') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-indigo-700 transition">
+                🧠 Student Intelligence
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12">

@@ -243,6 +243,9 @@
                         </span>
                         <div class="d-flex gap-1">
                             @if($isAdmin)
+                                <a href="{{ route('instructor.lessons.micro-topics.index', $lesson) }}" class="btn btn-xs btn-outline-info" style="font-size:0.75rem; padding:2px 8px;" title="Manage Flashcards/Micro-Topics">
+                                    <i class="bi bi-card-text"></i> Cards
+                                </a>
                                 <a href="{{ route('instructor.courses.modules.units.lessons.edit', [$course, $module, $unit, $lesson]) }}" class="btn btn-xs btn-outline-secondary" style="font-size:0.75rem; padding:2px 8px;">
                                     <i class="bi bi-pencil"></i>
                                 </a>
@@ -258,6 +261,9 @@
                                         <i class="bi bi-hourglass-split text-warning"></i>
                                     </span>
                                 @else
+                                    <a href="{{ route('instructor.lessons.micro-topics.index', $lesson) }}" class="btn btn-xs btn-outline-info" style="font-size:0.75rem; padding:2px 8px;" title="Manage Flashcards/Micro-Topics">
+                                        <i class="bi bi-card-text"></i> Cards
+                                    </a>
                                     <button type="button"
                                             class="btn btn-xs btn-outline-secondary"
                                             style="font-size:0.75rem; padding:2px 8px;"

@@ -28,6 +28,12 @@ class Assignment extends Model
         return $this->hasMany(AssignmentSubmission::class);
     }
 
+    /** The grading criterias for this assignment */
+    public function criterias()
+    {
+        return $this->hasMany(AssignmentCriteria::class, 'assignment_id');
+    }
+
     /** Submission by a specific student */
     public function submissionByUser(int $userId): ?AssignmentSubmission
     {

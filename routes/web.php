@@ -5,6 +5,7 @@ use App\Http\Controllers\Instructor\CourseController;
 use App\Http\Controllers\Instructor\ModuleController;
 use App\Http\Controllers\Instructor\UnitController;
 use App\Http\Controllers\Instructor\LessonController;
+use App\Http\Controllers\Instructor\MicroTopicController;
 use App\Http\Controllers\Instructor\InstructorAnalyticsController;
 use App\Http\Controllers\Instructor\AssignmentController as InstructorAssignmentController;
 use App\Http\Controllers\Instructor\QuizController as InstructorQuizController;
@@ -98,6 +99,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->group(function () {
             Route::get('/dashboard', [DashboardController::class , 'instructor'])->name('dashboard');
 
+            // ── Phase B1: Student Intelligence Dashboard ──────────────────────
+            Route::get('/analytics/students', [InstructorAnalyticsController::class, 'studentIntelligence'])->name('analytics.students');
 
             // Course CRUD
             Route::resource('courses', CourseController::class);
@@ -136,6 +139,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::delete('/{lesson}', [LessonController::class , 'destroy'])->name('destroy');
                 }
                 );
+
+                // ── Phase 12: Micro-Topic & Concept Card Builder ─────────────
+                Route::prefix('lessons/{lesson}/micro-topics')->name('lessons.micro-topics.')->group(function () {
+                    Route::get('/', [MicroTopicController::class, 'index'])->name('index');
+                    Route::get('/create', [MicroTopicController::class, 'create'])->name('create');
+                    Route::post('/', [MicroTopicController::class, 'store'])->name('store');
+                    Route::get('/{topic}/edit', [MicroTopicController::class, 'edit'])->name('edit');
+                    Route::put('/{topic}', [MicroTopicController::class, 'update'])->name('update');
+                    Route::delete('/{topic}', [MicroTopicController::class, 'destroy'])->name('destroy');
+                });
+
+                // ── Phase A1: AI Content Studio ──────────────────────────────
+                Route::prefix('lessons/{lesson}/ai-studio')->name('lessons.ai-studio.')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Instructor\AiContentController::class, 'studio'])->name('index');
+                    Route::post('/generate', [\App\Http\Controllers\Instructor\AiContentController::class, 'generate'])->name('generate');
+                    Route::post('/save', [\App\Http\Controllers\Instructor\AiContentController::class, 'save'])->name('save');
+                });
 
                 // ── Phase 3: Assignments ──────────────────────────────────────
                 Route::prefix('assignments')->name('assignments.')->group(function () {

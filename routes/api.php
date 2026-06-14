@@ -37,4 +37,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/student/weaknesses', [KnowledgeTrackerController::class, 'weaknesses']);
     Route::get('/student/recommendations', [KnowledgeTrackerController::class, 'recommendations']);
 
+    // Gamification & Learning Path (V1)
+    Route::get('/v1/learning-path', [\App\Http\Controllers\Api\V1\LearningPathController::class, 'getPath']);
+    Route::get('/v1/gamification/status', [\App\Http\Controllers\Api\V1\GamificationController::class, 'status']);
+    Route::get('/v1/micro-topics/{id}', [\App\Http\Controllers\Api\V1\GamificationController::class, 'getMicroTopic']);
+    Route::post('/v1/micro-topics/{id}/attempt', [\App\Http\Controllers\Api\V1\GamificationController::class, 'attemptMicroTopic']);
+    Route::post('/v1/micro-topics/{id}/attempt-practical', [\App\Http\Controllers\Api\V1\GamificationController::class, 'attemptPractical']);
+    Route::get('/v1/spaced-repetition/today', [\App\Http\Controllers\Api\V1\GamificationController::class, 'getSpacedRevision']);
+    Route::post('/v1/iqbot/explain', [\App\Http\Controllers\Api\V1\GamificationController::class, 'explainAnswer']);
+    Route::get('/v1/student/node-mastery', [\App\Http\Controllers\Api\V1\GamificationController::class, 'getNodeMastery']);
+    Route::get('/v1/student/badges', [\App\Http\Controllers\Api\V1\GamificationController::class, 'getBadges']);
+    Route::post('/v1/student/set-goal', [\App\Http\Controllers\Api\V1\GamificationController::class, 'setDailyGoal']);
+    Route::get('/v1/leaderboard', [\App\Http\Controllers\Api\V1\GamificationController::class, 'leaderboard']);
+
 });
