@@ -91,8 +91,8 @@ class StudentController extends Controller
     {
         $this->authorizeEnrollment($course);
 
-        // Eager-load lesson's unit + module for breadcrumb
-        $lesson->load('unit.module');
+        // Eager-load lesson's unit + module for breadcrumb, and AI MicroTopics
+        $lesson->load(['unit.module', 'microTopics.microQuizQuestions.options']);
 
         // Eager-load full course structure for the sidebar navigation
         $course->load(['modules.units.lessons' => function ($q) {

@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SystemWipeSeeder::class,
             M01ModuleSeeder::class,
-            TestUsersSeeder::class,
+            PresentationReadySeeder::class,
         ]);
     }
 }

@@ -71,8 +71,8 @@ class CourseController extends Controller
 
         $course = Course::create($data);
 
-        // Auto-assign the creator to course_user pivot with role 'creator'
-        $course->assignedInstructors()->attach(Auth::id(), ['role' => 'creator']);
+        // Auto-assign the creator to course_user pivot with role 'creator' using syncWithoutDetaching to prevent duplicates
+        $course->assignedInstructors()->syncWithoutDetaching([Auth::id() => ['role' => 'creator']]);
 
         return redirect()
             ->route('instructor.courses.show', $course)

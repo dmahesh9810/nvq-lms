@@ -12,7 +12,7 @@
             <h2 class="fw-bold mb-1">🧠 Student Intelligence</h2>
             <p class="text-muted mb-0">Real-time view of who is learning, who is struggling, and who needs your attention.</p>
         </div>
-        <a href="{{ route('instructor.analytics.dashboard') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('instructor.dashboard') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back to Analytics
         </a>
     </div>

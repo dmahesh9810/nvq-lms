@@ -152,6 +152,102 @@
                 </div>
                 @endif
 
+                {{-- ── AI Micro-Topics / Flashcards ── --}}
+                @if ($lesson->microTopics->count() > 0)
+                <div class="mb-4 mt-5">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-stars text-warning me-2"></i>Interactive Study (AI Generated)</h5>
+                    <div class="accordion" id="microTopicsAccordion">
+                        @foreach ($lesson->microTopics as $index => $topic)
+                        <div class="accordion-item border-0 bg-light mb-3 rounded-3 shadow-sm">
+                            <h2 class="accordion-header" id="heading-{{ $topic->id }}">
+                                <button class="accordion-button {{ $index !== 0 ? 'collapsed' : '' }} fw-semibold bg-white rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $topic->id }}" aria-expanded="{{ $index === 0 ? 'true' : 'false' }}" aria-controls="collapse-{{ $topic->id }}">
+                                    {{ $topic->topic_name }}
+                                    <span class="badge bg-secondary ms-auto me-2"><i class="bi bi-clock me-1"></i>{{ $topic->estimated_minutes }} min</span>
+                                </button>
+                            </h2>
+                            <div id="collapse-{{ $topic->id }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" aria-labelledby="heading-{{ $topic->id }}" data-bs-parent="#microTopicsAccordion">
+                                <div class="accordion-body">
+                                    @if ($topic->key_takeaway)
+                                    <div class="alert alert-info border-0 shadow-sm rounded-3 py-2 px-3 mb-4">
+                                        <strong><i class="bi bi-lightbulb-fill text-warning me-2"></i>Key Takeaway:</strong> {{ $topic->key_takeaway }}
+                                    </div>
+                                    @endif
+
+                                    @if (is_array($topic->concept_cards) && count($topic->concept_cards) > 0)
+                                    <h6 class="fw-bold mb-3">Concept Cards</h6>
+                                    <div class="row g-3 mb-4">
+                                        @foreach ($topic->concept_cards as $card)
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="card h-100 border-0 shadow-sm rounded-3">
+                                                <div class="card-body">
+                                                    <div class="fs-1 mb-2">{{ $card['emoji'] ?? '💡' }}</div>
+                                                    <h6 class="fw-bold">{{ $card['title'] ?? 'Concept' }}</h6>
+                                                    <p class="text-muted small mb-0">{{ $card['body'] ?? '' }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    @endif
+
+                                    @if ($topic->microQuizQuestions->count() > 0)
+                                    <h6 class="fw-bold mb-3">Knowledge Check</h6>
+                                    <div class="row g-3">
+                                        @foreach ($topic->microQuizQuestions as $qIndex => $question)
+                                        <div class="col-12">
+                                            <div class="card border-0 shadow-sm rounded-3">
+                                                <div class="card-body">
+                                                    <p class="fw-medium mb-3">Q{{ $qIndex + 1 }}: {{ $question->question_text }}</p>
+                                                    <div class="d-flex flex-column gap-2">
+                                                        @foreach ($question->options as $option)
+                                                        <button class="btn btn-outline-primary text-start quiz-option" data-correct="{{ $option->is_correct ? 'true' : 'false' }}" onclick="checkAnswer(this)">
+                                                            {{ $option->option_text }}
+                                                        </button>
+                                                        @endforeach
+                                                    </div>
+                                                    <div class="feedback-msg mt-2 d-none fw-semibold small"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <script>
+                    function checkAnswer(btn) {
+                        let parent = btn.parentElement;
+                        let buttons = parent.querySelectorAll('button');
+                        buttons.forEach(b => b.classList.add('disabled'));
+                        
+                        let feedback = parent.nextElementSibling;
+                        feedback.classList.remove('d-none');
+
+                        if (btn.dataset.correct === 'true') {
+                            btn.classList.replace('btn-outline-primary', 'btn-success');
+                            feedback.classList.add('text-success');
+                            feedback.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Correct!';
+                        } else {
+                            btn.classList.replace('btn-outline-primary', 'btn-danger');
+                            feedback.classList.add('text-danger');
+                            feedback.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i>Incorrect! The correct answer is highlighted.';
+                            // Highlight correct answer
+                            buttons.forEach(b => {
+                                if (b.dataset.correct === 'true') {
+                                    b.classList.replace('btn-outline-primary', 'btn-outline-success');
+                                    b.classList.add('fw-bold');
+                                }
+                            });
+                        }
+                    }
+                </script>
+                @endif
+
                 {{-- ── Mark as Complete ── --}}
                 @if (!$isCompleted)
                 <div class="border-top pt-4 mt-2">

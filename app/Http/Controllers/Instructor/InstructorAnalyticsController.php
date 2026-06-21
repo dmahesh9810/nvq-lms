@@ -92,7 +92,7 @@ class InstructorAnalyticsController extends Controller
         $totalTopics  = MicroTopic::count();
 
         // Get all students enrolled in any course instructed by this lecturer
-        $enrolledStudentIds = \App\Models\StudentEnrollment::whereHas('course', function ($q) use ($instructorId) {
+        $enrolledStudentIds = \App\Models\Enrollment::whereHas('course', function ($q) use ($instructorId) {
             $q->where('instructor_id', $instructorId);
         })->pluck('user_id')->unique();
 

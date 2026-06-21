@@ -23,4 +23,8 @@ class MicroTopic extends Model
     public function criterias() { 
         return $this->hasMany(AssignmentCriteria::class, 'micro_topic_id'); 
     }
+
+    public function microQuizQuestions() {
+        return $this->hasMany(MicroQuizQuestion::class);
+    }
 }
