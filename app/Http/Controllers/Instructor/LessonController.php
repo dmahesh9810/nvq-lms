@@ -18,7 +18,10 @@ class LessonController extends Controller
      */
     public function create(Course $course, Module $module, Unit $unit)
     {
-        abort_unless(\Illuminate\Support\Facades\Auth::user()->isAdmin(), 403, 'Only administrators can add lessons.');
+        $canEdit = Auth::user()->isAdmin() || 
+                   (Auth::user()->isInstructor() && in_array($course->status, ['draft', 'rejected']));
+
+        abort_unless($canEdit, 403, 'Instructors can only add lessons while the course is in Draft or Rejected state.');
 
         $this->authorizeModule($course, $module);
 
@@ -30,7 +33,10 @@ class LessonController extends Controller
      */
     public function store(LessonRequest $request, Course $course, Module $module, Unit $unit)
     {
-        abort_unless(\Illuminate\Support\Facades\Auth::user()->isAdmin(), 403, 'Only administrators can add lessons.');
+        $canEdit = Auth::user()->isAdmin() || 
+                   (Auth::user()->isInstructor() && in_array($course->status, ['draft', 'rejected']));
+
+        abort_unless($canEdit, 403, 'Instructors can only add lessons while the course is in Draft or Rejected state.');
 
         $this->authorizeModule($course, $module);
 
@@ -63,8 +69,11 @@ class LessonController extends Controller
      */
     public function edit(Course $course, Module $module, Unit $unit, Lesson $lesson)
     {
-        abort_unless(Auth::user()->isAdmin(), 403,
-            'Instructors cannot edit lessons directly. Please use the "Request Edit" button.');
+        $canEdit = Auth::user()->isAdmin() || 
+                   (Auth::user()->isInstructor() && in_array($course->status, ['draft', 'rejected']));
+
+        abort_unless($canEdit, 403,
+            'Instructors can only edit lessons while the course is in Draft or Rejected state. Please use the "Request Edit" button.');
 
         $this->authorizeModule($course, $module);
 
@@ -77,8 +86,11 @@ class LessonController extends Controller
      */
     public function update(LessonRequest $request, Course $course, Module $module, Unit $unit, Lesson $lesson)
     {
-        abort_unless(Auth::user()->isAdmin(), 403,
-            'Instructors cannot update lessons directly. Please submit a Request Edit instead.');
+        $canEdit = Auth::user()->isAdmin() || 
+                   (Auth::user()->isInstructor() && in_array($course->status, ['draft', 'rejected']));
+
+        abort_unless($canEdit, 403,
+            'Instructors can only update lessons while the course is in Draft or Rejected state. Please submit a Request Edit instead.');
 
         $this->authorizeModule($course, $module);
 
@@ -108,8 +120,11 @@ class LessonController extends Controller
      */
     public function destroy(Course $course, Module $module, Unit $unit, Lesson $lesson)
     {
-        abort_unless(Auth::user()->isAdmin(), 403,
-            'Instructors cannot delete lessons directly. Please submit a Request Delete instead.');
+        $canEdit = Auth::user()->isAdmin() || 
+                   (Auth::user()->isInstructor() && in_array($course->status, ['draft', 'rejected']));
+
+        abort_unless($canEdit, 403,
+            'Instructors can only delete lessons while the course is in Draft or Rejected state. Please submit a Request Delete instead.');
 
         $this->authorizeModule($course, $module);
 

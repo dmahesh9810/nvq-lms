@@ -20,6 +20,8 @@
 
     $courseEditPending   = $myPendingRequests->has("course:{$course->id}:update");
     $courseDeletePending = $myPendingRequests->has("course:{$course->id}:delete");
+
+    $canEditStructure = $isAdmin || ($isCourseLvlAdmin && in_array($course->status, ['draft', 'rejected']));
 @endphp
 
 <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -43,7 +45,7 @@
         @endif
 
         @if($course->status !== 'pending')
-            @if($isAdmin)
+            @if($canEditStructure)
                 {{-- Admin: direct edit button --}}
                 <a href="{{ route('instructor.courses.edit', $course) }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-pencil me-1"></i>Edit Course
@@ -84,6 +86,8 @@
             <button type="button" class="btn btn-info text-white btn-sm" data-bs-toggle="modal" data-bs-target="#assignCourseInstructorsModal">
                 <i class="bi bi-people me-1"></i>Manage Instructors
             </button>
+            @endif
+            @if($canEditStructure)
             <a href="{{ route('instructor.courses.modules.create', $course) }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-circle me-1"></i>Add Module
             </a>
@@ -98,7 +102,7 @@
         <div class="card-body text-center py-5 text-muted">
             <i class="bi bi-diagram-3" style="font-size:2.5rem;"></i>
             <p class="mt-3 mb-2">No modules yet. Add your first module to start building this course.</p>
-            @if($isAdmin)
+            @if($canEditStructure)
             <a href="{{ route('instructor.courses.modules.create', $course) }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus me-1"></i>Add Module
             </a>
@@ -125,10 +129,12 @@
                     <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#assignModuleInstructorsModal{{ $module->id }}">
                         <i class="bi bi-people"></i> Assign
                     </button>
+                @endif
+                @if($canEditStructure)
                     <a href="{{ route('instructor.courses.modules.units.create', [$course, $module]) }}" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-plus me-1"></i>Add Unit
                     </a>
-                    {{-- Admin: direct edit & delete --}}
+                    {{-- Admin or Draft Instructor: direct edit & delete --}}
                     <a href="{{ route('instructor.courses.modules.edit', [$course, $module]) }}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-pencil"></i>
                     </a>
@@ -182,7 +188,7 @@
                         @unless($unit->is_active)<span class="badge bg-secondary ms-2 small">Inactive</span>@endunless
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
-                        @if($isAdmin)
+                        @if($canEditStructure)
                             <a href="{{ route('instructor.courses.modules.units.lessons.create', [$course, $module, $unit]) }}" class="btn btn-sm btn-outline-success">
                                 <i class="bi bi-plus me-1"></i>Add Lesson
                             </a>
@@ -242,7 +248,7 @@
                             @unless($lesson->is_active)<span class="badge bg-secondary ms-1" style="font-size:0.65rem;">Hidden</span>@endunless
                         </span>
                         <div class="d-flex gap-1">
-                            @if($isAdmin)
+                            @if($canEditStructure)
                                 <a href="{{ route('instructor.lessons.micro-topics.index', $lesson) }}" class="btn btn-xs btn-outline-info" style="font-size:0.75rem; padding:2px 8px;" title="Manage Flashcards/Micro-Topics">
                                     <i class="bi bi-card-text"></i> Cards
                                 </a>

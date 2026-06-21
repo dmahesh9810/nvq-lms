@@ -104,10 +104,13 @@ class CourseController extends Controller
     {
         $this->authorizeCourseStrict($course);
 
+        $canEdit = Auth::user()->isAdmin() || 
+                   (Auth::user()->isInstructor() && in_array($course->status, ['draft', 'rejected']));
+
         abort_unless(
-            Auth::user()->isAdmin(),
+            $canEdit,
             403,
-            'Instructors cannot edit courses directly. Please use the "Request Edit" button on the course page.'
+            'Instructors can only edit courses while they are in Draft or Rejected state. For published courses, please use the "Request Edit" button.'
         );
 
         if ($course->status === 'pending') {
@@ -126,10 +129,13 @@ class CourseController extends Controller
     {
         $this->authorizeCourseStrict($course);
 
+        $canEdit = Auth::user()->isAdmin() || 
+                   (Auth::user()->isInstructor() && in_array($course->status, ['draft', 'rejected']));
+
         abort_unless(
-            Auth::user()->isAdmin(),
+            $canEdit,
             403,
-            'Instructors cannot update courses directly. Please submit a Request Edit instead.'
+            'Instructors can only update courses while they are in Draft or Rejected state. Please submit a Request Edit instead.'
         );
 
         if ($course->status === 'pending') {
@@ -180,10 +186,13 @@ class CourseController extends Controller
     {
         $this->authorizeCourseStrict($course);
 
+        $canEdit = Auth::user()->isAdmin() || 
+                   (Auth::user()->isInstructor() && in_array($course->status, ['draft', 'rejected']));
+
         abort_unless(
-            Auth::user()->isAdmin(),
+            $canEdit,
             403,
-            'Instructors cannot delete courses directly. Please submit a Request Delete instead.'
+            'Instructors can only delete courses while they are in Draft or Rejected state. Please submit a Request Delete instead.'
         );
 
         if ($course->thumbnail) {
