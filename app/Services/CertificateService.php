@@ -57,35 +57,13 @@ class CertificateService
         $allUnitIds = $course->modules->flatMap->units->pluck('id');
 
         if ($allUnitIds->isNotEmpty()) {
-            $hasCompetencyData = \App\Models\CompetencyAssessment::where('user_id', $user->id)
+            $competentCount = \App\Models\CompetencyAssessment::where('user_id', $user->id)
                 ->whereIn('unit_id', $allUnitIds)
-                ->exists();
+                ->where('status', 'competent')
+                ->count();
 
-            if ($hasCompetencyData) {
-                $competentCount = \App\Models\CompetencyAssessment::where('user_id', $user->id)
-                    ->whereIn('unit_id', $allUnitIds)
-                    ->where('status', 'competent')
-                    ->count();
-
-                if ($competentCount < $allUnitIds->count()) {
-                    $reasons[] = "You must be marked 'Competent' in all units to earn this NVQ certificate.";
-                }
-            } else {
-                // Fallback to old assignment logic
-                $course->loadMissing(['modules.units.assignments']);
-                $allAssignmentIds = $course->modules->flatMap->units->flatMap->assignments->pluck('id');
-
-                if ($allAssignmentIds->isNotEmpty()) {
-                    $competentCount = AssignmentResult::join('assignment_submissions', 'assignment_results.submission_id', '=', 'assignment_submissions.id')
-                        ->where('assignment_submissions.user_id', $user->id)
-                        ->whereIn('assignment_submissions.assignment_id', $allAssignmentIds)
-                        ->where('assignment_results.competency_status', 'competent')
-                        ->count();
-
-                    if ($competentCount < $allAssignmentIds->count()) {
-                        $reasons[] = "You must be marked 'Competent' in all project assignments to earn this NVQ certificate.";
-                    }
-                }
+            if ($competentCount < $allUnitIds->count()) {
+                $reasons[] = "You must be marked 'Competent' in all units by an Assessor to earn this NVQ certificate.";
             }
         }
 
